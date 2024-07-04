@@ -673,7 +673,6 @@ void DrawAllShapes() {
     }
 
     // 绘制选中的形状的外框
-
     EndBatchDraw();
 }
 
