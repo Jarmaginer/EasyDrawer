@@ -896,7 +896,7 @@ int main() {
                     // 删除选中的形状
                     shapes.erase(shapes.begin() + selectedIndex);
                     // 清除selectedIndex
-                    selectedIndex = -1;
+                    selectedIndex--;
                     // 重新绘制所有形状
                     DrawAllShapes();
                 }
