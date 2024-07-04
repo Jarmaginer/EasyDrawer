@@ -16,7 +16,7 @@
 #define drawTuoyuanMode drawTuoYuanButton.isPressed
 #define selectMode selectShapeButton.isPressed
 #define zoomMode zoomButton.isPressed
-
+#define layerEditMode layerEditButton.isPressed
 
 static int COLOR = WHITE;
 int selectedIndex = -1;
@@ -133,6 +133,7 @@ Button deleteButton(1100, 0, 1200, 50, _T("删除"));
 Button changeLineStyleButton(1200, 0, 1300, 50, _T("改变线型"));
 Button addLineWidthButton(1300, 0, 1400, 50, _T("增加线宽"));
 Button reduceLineWidthButton(1400, 0, 1500, 50, _T("减小线宽"));
+Button layerEditButton(1500, 0, 1600, 50, _T("图层编辑"));
 
 Button WhiteButton(0, 0, 25, 25, _T(""));
 Button RedButton(25, 0, 50, 25, _T(""));
@@ -158,7 +159,8 @@ Button* buttons[] = {
     &drawDuoButton,
     &drawTuoYuanButton,
     &selectShapeButton,
-    &zoomButton
+    &zoomButton,
+	&layerEditButton
 };
 
 Button* colourbuttons[] = {
@@ -196,6 +198,7 @@ void drawButton() {
     copyButton.draw();
     deleteButton.draw();
     fillButton.draw();
+    layerEditButton.draw();
 
 	changeLineStyleButton.draw();
 	addLineWidthButton.draw();
@@ -697,11 +700,11 @@ int main() {
         drawButton();
         POINT pt = { msg.x, msg.y };
 
-        if (!selectMode && !zoomMode) { selectedIndex = -1; }
+        if (!selectMode && !zoomMode && !layerEditMode) { selectedIndex = -1; }
 
         switch (msg.uMsg) {
         case WM_LBUTTONDOWN:
-            if (selectMode||zoomMode) {
+            if (selectMode||zoomMode||layerEditMode) {
                 for (size_t i = 0; i < shapes.size(); ++i) {
                     RECT bbox = shapes[i]->getBoundingBox();
                     if (pt.x >= bbox.left && pt.x <= bbox.right &&
@@ -714,8 +717,11 @@ int main() {
                 }
                 DrawAllShapes();
             }
-
-            if (BlackButton.isInside(msg.x, msg.y)) {
+            if (layerEditButton.isInside(msg.x, msg.y)) {
+                pressButtom(&layerEditButton);
+                continue;
+            }
+            else if (BlackButton.isInside(msg.x, msg.y)) {
                 COLOR = BLACK;
                 pressColourButtom(&BlackButton);
 
@@ -966,7 +972,7 @@ int main() {
                     DrawAllShapes();
                 }
             }
-            else if ((selectMode || zoomMode) && selectedIndex != -1) {
+            else if ((selectMode || zoomMode || layerEditMode) && selectedIndex != -1) {
                 // 左键按下，开始拖动选中的图形
                 isDragging = true;
                 lastMousePos = pt;
@@ -1085,6 +1091,24 @@ int main() {
                 double factor = msg.wheel > 0 ? 1.1 : 0.9;
                 shapes[selectedIndex]->zoom(factor, pt);
                 DrawAllShapes();
+            }
+            if (layerEditMode && selectedIndex != -1) {
+                short temp = msg.wheel;
+                    if (temp == 120) {
+                        // 上移一层
+                        if (selectedIndex > 0) {
+                            std::swap(shapes[selectedIndex], shapes[selectedIndex - 1]);
+                            selectedIndex--;
+                        }
+                    }
+                    else{
+                        // 下移一层
+                        if (selectedIndex < shapes.size() - 1) {
+                            std::swap(shapes[selectedIndex], shapes[selectedIndex + 1]);
+                            selectedIndex++;
+                        }
+                    }
+                    DrawAllShapes();
             }
             break;
 

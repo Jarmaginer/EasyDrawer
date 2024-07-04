@@ -130,6 +130,10 @@ Button zoomButton(800, 0, 900, 50, _T("缩放"));
 Button fillButton(900, 0, 1000, 50, _T("填充"));
 Button copyButton(1000, 0, 1100, 50, _T("复制"));
 Button deleteButton(1100, 0, 1200, 50, _T("删除"));
+Button changeLineStyleButton(1200, 0, 1300, 50, _T("改变线型"));
+Button addLineWidthButton(1300, 0, 1400, 50, _T("增加线宽"));
+Button reduceLineWidthButton(1400, 0, 1500, 50, _T("减小线宽"));
+
 Button WhiteButton(0, 0, 25, 25, _T(""));
 Button RedButton(25, 0, 50, 25, _T(""));
 Button GreenButton(50, 0, 75, 25, _T(""));
@@ -192,6 +196,11 @@ void drawButton() {
     copyButton.draw();
     deleteButton.draw();
     fillButton.draw();
+
+	changeLineStyleButton.draw();
+	addLineWidthButton.draw();
+	reduceLineWidthButton.draw();
+
     BlackButton.drawColorButtom(BLACK);
     RedButton.drawColorButtom(RED);
     GreenButton.drawColorButtom(GREEN);
@@ -223,6 +232,26 @@ public:
     int color = COLOR;
     int fillcolor = COLOR;
     bool is_fill = false;
+    int lineWidth = 1; // 默认线宽
+    int lineStyle = PS_SOLID; // 默认线型，PS_SOLID表示实线
+	virtual void changeLineStyle() {
+		if (lineStyle == 4)
+		{
+			lineStyle = 0;
+		}
+		else
+		{
+			lineStyle++;
+		}
+	}
+	virtual void addLineWidth() {
+		lineWidth++;
+	}
+	virtual void reduceLineWidth() {
+		if (lineWidth > 1) {
+			lineWidth--;
+		}
+	}
     virtual void zoom(double factor, POINT center) = 0;
     virtual void setColor(int co) {
         this->color = co;
@@ -244,6 +273,7 @@ public:
     Circle(POINT center, int radius) : center(center), radius(radius) {}
     void draw() const override {
         setlinecolor(color);
+		setlinestyle(lineStyle,lineWidth);
         if (is_fill) {
             setfillcolor(fillcolor);
             solidcircle(center.x, center.y, radius);
@@ -253,6 +283,8 @@ public:
             circle(center.x, center.y, radius);
         }
         setlinecolor(WHITE);
+		setlinestyle(PS_SOLID, 1);
+
     }
     RECT getBoundingBox() const override {
         return { center.x - radius, center.y - radius, center.x + radius, center.y + radius };
@@ -293,6 +325,7 @@ public:
     Rect(POINT topLeft, POINT bottomRight) : topLeft(topLeft), bottomRight(bottomRight) {}
     void draw() const override {
         setlinecolor(color);
+        setlinestyle(lineStyle, lineWidth);
         if (is_fill) {
             setfillcolor(fillcolor);
             solidrectangle(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
@@ -302,6 +335,7 @@ public:
             rectangle(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
         }
         setlinecolor(WHITE);
+		setlinestyle(PS_SOLID, 1);
     }
     RECT getBoundingBox() const override {
         return { topLeft.x, topLeft.y, bottomRight.x, bottomRight.y };
@@ -354,19 +388,23 @@ public:
         if (points.size() < 2) return;
         if (is_fill && points.size() > 2) {
             setfillcolor(fillcolor);
+
             solidpolygon(&points[0], points.size());
             for (size_t i = 0; i < points.size() - 1; ++i) {
                 setlinecolor(color);
+                setlinestyle(lineStyle, lineWidth);
                 line(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
             }
         }
         else {
             for (size_t i = 0; i < points.size() - 1; ++i) {
                 setlinecolor(color);
+                setlinestyle(lineStyle, lineWidth);
                 line(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
             }
         }
         setlinecolor(WHITE);
+		setlinestyle(PS_SOLID, 1);
     }
     RECT getBoundingBox() const override {
         if (points.empty()) return { 0, 0, 0, 0 };
@@ -422,6 +460,7 @@ public:
     Tuoyuan(POINT topLeft, POINT bottomRight) : topLeft(topLeft), bottomRight(bottomRight) {}
     void draw() const override {
         setlinecolor(color);
+        setlinestyle(lineStyle, lineWidth);
         if (is_fill) {
             setfillcolor(fillcolor);
             solidellipse(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
@@ -431,6 +470,7 @@ public:
             ellipse(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
         }
         setlinecolor(WHITE);
+        setlinestyle(PS_SOLID, 1);
     }
     RECT getBoundingBox() const override {
         return { topLeft.x, topLeft.y, bottomRight.x, bottomRight.y };
@@ -485,6 +525,7 @@ public:
     void draw() const override {
         if (points.size() < 3) return;
         setlinecolor(color);
+        setlinestyle(lineStyle, lineWidth);
         if (is_fill) {
             setfillcolor(fillcolor);
             solidpolygon(&points[0], points.size());
@@ -494,6 +535,7 @@ public:
             polygon(&points[0], points.size());
         }
         setlinecolor(WHITE);
+		setlinestyle(PS_SOLID, 1);
     }
     RECT getBoundingBox() const override {
         if (points.empty()) return { 0, 0, 0, 0 };
@@ -529,7 +571,10 @@ public:
         for (const auto& pt : points) {
             ss << L"(" << pt.x << L"," << pt.y << L")";
         }
-        ss << L"\nFill=" << (is_fill ? L"True" : L"False");
+        ss << L"\n线条颜色=" << colorToString(color);
+        if (is_fill) {
+            ss << L"\n填充颜色=" << colorToString(fillcolor);
+        }
         return ss.str();
     }
 private:
@@ -641,18 +686,19 @@ void pressColourButtom(Button* targetButton) {
 int main() {
     // 初始化图形窗口
     initgraph(1600, 900);
-    setbkcolor(BLACK);
+    setbkmode(TRANSPARENT);
     cleardevice();
+    drawButton();
     drawCircleButton.press();
     WhiteButton.press();
     while (true) {
         // 获取鼠标消息
         MOUSEMSG msg = GetMouseMsg();
-
+        drawButton();
         POINT pt = { msg.x, msg.y };
 
         if (!selectMode && !zoomMode) { selectedIndex = -1; }
-        drawButton();
+
         switch (msg.uMsg) {
         case WM_LBUTTONDOWN:
             if (selectMode||zoomMode) {
@@ -666,6 +712,7 @@ int main() {
                         break;
                     }
                 }
+                DrawAllShapes();
             }
 
             if (BlackButton.isInside(msg.x, msg.y)) {
@@ -842,7 +889,42 @@ int main() {
                     continue;
                 }
             }
+            else if (changeLineStyleButton.isInside(msg.x, msg.y)) {
+				if (selectedIndex != -1) {
+					shapes[selectedIndex]->changeLineStyle();
+					DrawAllShapes();
+				}
+                else {
+					HWND hnd = GetHWnd();
 
+					MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
+					continue;
+				}
+            }
+            else if (addLineWidthButton.isInside(msg.x, msg.y)) {
+				if (selectedIndex != -1) {
+					shapes[selectedIndex]->addLineWidth();
+					DrawAllShapes();
+				}
+                else {
+					HWND hnd = GetHWnd();
+
+					MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
+					continue;
+				}
+			}
+            else if (reduceLineWidthButton.isInside(msg.x, msg.y)) {
+				if (selectedIndex != -1) {
+					shapes[selectedIndex]->reduceLineWidth();
+					DrawAllShapes();
+				}
+                else {
+					HWND hnd = GetHWnd();
+
+					MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
+					continue;
+				}
+            }
 
             if (drawCircleMode) {
                 // 左键按下，开始绘制圆
