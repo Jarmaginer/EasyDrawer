@@ -17,6 +17,8 @@
 #define zoomMode zoomButton.isPressed
 
 
+static int COLOR = RED;
+
 // 按钮类
 class Button {
 public:
@@ -35,7 +37,7 @@ public:
 
         settextstyle(24, 0, _T("Consolas"));
         settextcolor(WHITE);
-        outtextxy((left + right)/2-5*sizeof(text), top + 13, text);
+        outtextxy((left + right) / 2 - 5 * sizeof(text), top + 13, text);
         setlinecolor(WHITE);
     }
 
@@ -56,15 +58,42 @@ private:
     const WCHAR* text;
 
 };
-Button drawCircleButton(300, 0, 400, 50, _T("圆"));
-Button drawRectButton(400, 0, 500, 50, _T("长方形"));
-Button drawZhexianButton(500, 0, 600, 50, _T("折线"));
-Button drawDuoButton(600, 0, 700, 50, _T("多边形"));
-Button drawTuoYuanButton(700, 0, 800, 50, _T("椭圆"));
-Button selectShapeButton(800, 0, 900, 50, _T("选择"));
-Button zoomButton(900, 0, 1000, 50, _T("缩放"));
+Button drawCircleButton(200, 0, 300, 50, _T("圆"));
+Button drawRectButton(300, 0, 400, 50, _T("长方形"));
+Button drawZhexianButton(400, 0, 500, 50, _T("折线"));
+Button drawDuoButton(500, 0, 600, 50, _T("多边形"));
+Button drawTuoYuanButton(600, 0, 700, 50, _T("椭圆"));
+Button selectShapeButton(700, 0, 800, 50, _T("选择"));
+Button zoomButton(800, 0, 900, 50, _T("缩放"));
+Button fillButton(900, 0, 1000, 50, _T("填充"));
 Button copyButton(1000, 0, 1100, 50, _T("复制"));
 Button deleteButton(1100, 0, 1200, 50, _T("删除"));
+
+// 定义一个按钮数组，包含所有需要分组的按钮
+Button* buttons[] = {
+    &drawCircleButton,
+    &drawRectButton,
+    &drawZhexianButton,
+    &drawDuoButton,
+    &drawTuoYuanButton,
+    &selectShapeButton,
+    &zoomButton
+};
+
+
+// 定义一个函数来更新按钮组状态
+void updateButtonGroup(Button* targetButton) {
+    for (auto button : buttons) {
+        if (button != targetButton) {
+            button->release(); // 如果不是目标按钮，释放它
+        }
+        else {
+            button->press();   // 如果是目标按钮，按下去
+        }
+    }
+}
+
+
 
 void drawButton() {
     BeginBatchDraw();
@@ -77,6 +106,7 @@ void drawButton() {
     zoomButton.draw();
     copyButton.draw();
     deleteButton.draw();
+    fillButton.draw();
     EndBatchDraw();
 }
 
@@ -88,6 +118,7 @@ public:
     virtual RECT getBoundingBox() const = 0;
     virtual void move(int dx, int dy) = 0;
     virtual ~Shape() {}
+    virtual std::shared_ptr<Shape> clone() const = 0;
     int color = WHITE;
     bool is_fill = false; // 新增成员变量
     virtual void zoom(double factor, POINT center) = 0;
@@ -129,6 +160,9 @@ public:
         center.y = static_cast<int>(zoomCenter.y + dy * factor);
         radius = static_cast<int>(radius * factor);
     }
+    std::shared_ptr<Shape> clone() const override {
+        return std::make_shared<Circle>(*this);
+    }
 private:
     POINT center;
     int radius;
@@ -167,6 +201,9 @@ public:
         topLeft.y = static_cast<int>(zoomCenter.y + dy1 * factor);
         bottomRight.x = static_cast<int>(zoomCenter.x + dx2 * factor);
         bottomRight.y = static_cast<int>(zoomCenter.y + dy2 * factor);
+    }
+    std::shared_ptr<Shape> clone() const override {
+        return std::make_shared<Rect>(*this);
     }
 private:
     POINT topLeft;
@@ -223,6 +260,9 @@ public:
             pt.y = static_cast<int>(zoomCenter.y + dy * factor);
         }
     }
+    std::shared_ptr<Shape> clone() const override {
+        return std::make_shared<Zhexian>(*this);
+    }
 private:
     std::vector<POINT> points;
 };
@@ -259,6 +299,9 @@ public:
         topLeft.y = static_cast<int>(zoomCenter.y + dy1 * factor);
         bottomRight.x = static_cast<int>(zoomCenter.x + dx2 * factor);
         bottomRight.y = static_cast<int>(zoomCenter.y + dy2 * factor);
+    }
+    std::shared_ptr<Shape> clone() const override {
+        return std::make_shared<Tuoyuan>(*this);
     }
 private:
     POINT topLeft;
@@ -314,6 +357,9 @@ public:
             pt.x = static_cast<int>(zoomCenter.x + dx * factor);
             pt.y = static_cast<int>(zoomCenter.y + dy * factor);
         }
+    }
+    std::shared_ptr<Shape> clone() const override {
+        return std::make_shared<Duo>(*this);
     }
 private:
     std::vector<POINT> points;
@@ -384,97 +430,104 @@ int main() {
     initgraph(1200, 800);
     setbkcolor(BLACK);
     cleardevice();
-
+    drawCircleButton.press();
     while (true) {
         // 获取鼠标消息
         MOUSEMSG msg = GetMouseMsg();
 
         POINT pt = { msg.x, msg.y };
+
         if (!selectMode && !zoomMode) { selectedIndex = -1; }
         drawButton();
         switch (msg.uMsg) {
         case WM_LBUTTONDOWN:
+            if (selectMode) {
+                for (size_t i = 0; i < shapes.size(); ++i) {
+                    RECT bbox = shapes[i]->getBoundingBox();
+                    if (pt.x >= bbox.left && pt.x <= bbox.right &&
+                        pt.y >= bbox.top && pt.y <= bbox.bottom) {
+                        selectedIndex = static_cast<int>(i);
+                        isDragging = true;
+                        lastMousePos = pt;
+                        break;
+                    }
+                }
+            }
             if (drawCircleButton.isInside(msg.x, msg.y)) {
-
-				drawCircleButton.press();
-				drawRectButton.release();
-				drawZhexianButton.release();
-				drawDuoButton.release();
-				selectShapeButton.release();
-				drawTuoYuanButton.release();
-				zoomButton.release();
-
-
+                updateButtonGroup(&drawCircleButton);
                 continue;
             }
             else if (drawRectButton.isInside(msg.x, msg.y)) {
-  
-                drawCircleButton.release();
-                drawRectButton.press();
-                drawZhexianButton.release();
-                drawDuoButton.release();
-                selectShapeButton.release();
-                drawTuoYuanButton.release();
-                zoomButton.release();
-
-
+                updateButtonGroup(&drawRectButton);
                 continue;
             }
             else if (drawZhexianButton.isInside(msg.x, msg.y)) {
-                drawCircleButton.release();
-                drawRectButton.release();
-                drawZhexianButton.press();
-                drawDuoButton.release();
-                selectShapeButton.release();
-                drawTuoYuanButton.release();
-                zoomButton.release();
+                updateButtonGroup(&drawZhexianButton);
                 continue;
             }
             else if (drawDuoButton.isInside(msg.x, msg.y)) {
-                drawCircleButton.release();
-                drawRectButton.release();
-                drawZhexianButton.release();
-                drawDuoButton.press();
-                selectShapeButton.release();
-                drawTuoYuanButton.release();
-                zoomButton.release();
+                updateButtonGroup(&drawDuoButton);
                 continue;
             }
             else if (selectShapeButton.isInside(msg.x, msg.y)) {
-                drawCircleButton.release();
-                drawRectButton.release();
-                drawZhexianButton.release();
-                drawDuoButton.release();
-                selectShapeButton.press();
-                drawTuoYuanButton.release();
-                zoomButton.release();
+                updateButtonGroup(&selectShapeButton);
                 continue;
             }
             else if (drawTuoYuanButton.isInside(msg.x, msg.y)) {
-                drawCircleButton.release();
-                drawRectButton.release();
-                drawZhexianButton.release();
-                drawDuoButton.release();
-                selectShapeButton.release();
-                drawTuoYuanButton.press();
-                zoomButton.release();
+                updateButtonGroup(&drawTuoYuanButton);
                 continue;
             }
             else if (zoomButton.isInside(msg.x, msg.y)) {
                 if (selectedIndex == -1) {
-					HWND hnd = GetHWnd();
+                    HWND hnd = GetHWnd();
 
-					MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
+                    MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
                     continue;
                 }
-                drawCircleButton.release();
-                drawRectButton.release();
-                drawZhexianButton.release();
-                drawDuoButton.release();
-                selectShapeButton.release();
-                drawTuoYuanButton.release ();
-                zoomButton.press();
+				updateButtonGroup(&zoomButton);
                 continue;
+            }
+            else if (copyButton.isInside(msg.x, msg.y)) {
+                if (selectedIndex == -1) {
+                    HWND hnd = GetHWnd();
+
+                    MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
+                    continue;
+                }
+                if (selectedIndex != -1) {
+                    // 复制选定的形状
+                    std::shared_ptr<Shape> copiedShape = shapes[selectedIndex]->clone(); // 假设Shape类有clone方法
+                    // 将复制的形状移动到窗口左上角
+                    copiedShape->move(10, 10); // 或者根据需要设置具体位置
+                    // 添加复制的形状到shapes向量
+                    shapes.push_back(copiedShape);
+                    // 更新selectedIndex以选中新复制的形状
+                    selectedIndex = shapes.size() - 1;
+                    // 重新绘制所有形状
+                    DrawAllShapes();
+                }
+            }
+            else if (deleteButton.isInside(msg.x, msg.y)) {
+                if (selectedIndex == -1) {
+                    HWND hnd = GetHWnd();
+
+                    MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
+                    continue;
+                }
+                if (selectedIndex != -1) {
+                    // 删除选中的形状
+                    shapes.erase(shapes.begin() + selectedIndex);
+                    // 清除selectedIndex
+                    selectedIndex = -1;
+                    // 重新绘制所有形状
+                    DrawAllShapes();
+                }
+            }
+            else if (fillButton.isInside(msg.x, msg.y)) {
+				if (selectedIndex != -1) {
+					shapes[selectedIndex]->setFill(!shapes[selectedIndex]->is_fill);
+					DrawAllShapes();
+				}
             }
 
 
@@ -518,7 +571,7 @@ int main() {
                     DrawAllShapes();
                 }
             }
-            else if ((selectMode||zoomMode) && selectedIndex != -1) {
+            else if ((selectMode || zoomMode) && selectedIndex != -1) {
                 // 左键按下，开始拖动选中的图形
                 isDragging = true;
                 lastMousePos = pt;

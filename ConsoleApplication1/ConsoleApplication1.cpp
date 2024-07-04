@@ -7,6 +7,7 @@
 #include <string>
 #include <codecvt>
 #include <locale>
+#include <sstream>
 
 #define drawCircleMode drawCircleButton.isPressed
 #define drawRectMode drawRectButton.isPressed
@@ -59,7 +60,7 @@ private:
 
 };
 Button drawCircleButton(200, 0, 300, 50, _T("圆"));
-Button drawRectButton(300, 0, 400, 50, _T("长方形"));
+Button drawRectButton(300, 0, 400, 50, _T("矩形"));
 Button drawZhexianButton(400, 0, 500, 50, _T("折线"));
 Button drawDuoButton(500, 0, 600, 50, _T("多边形"));
 Button drawTuoYuanButton(600, 0, 700, 50, _T("椭圆"));
@@ -125,6 +126,7 @@ public:
     virtual void setColor(int co) {
         this->color = co;
     }
+	virtual std::wstring getInfo() const = 0;
 
     void setFill(bool fill) {
         this->is_fill = fill;
@@ -160,9 +162,16 @@ public:
         center.y = static_cast<int>(zoomCenter.y + dy * factor);
         radius = static_cast<int>(radius * factor);
     }
+    std::wstring getInfo() const override {
+        std::wstringstream ss;
+        ss << L"圆: \n半径=" << radius << L"\n圆心=(" << center.x << L"," << center.y << L")\n填充状态=" << (is_fill ? L"True" : L"False");
+        return ss.str();
+    }
+
     std::shared_ptr<Shape> clone() const override {
         return std::make_shared<Circle>(*this);
     }
+
 private:
     POINT center;
     int radius;
@@ -205,6 +214,11 @@ public:
     std::shared_ptr<Shape> clone() const override {
         return std::make_shared<Rect>(*this);
     }
+    std::wstring getInfo() const override {
+		std::wstringstream ss;
+		ss << L"矩形: \n左上点=(" << topLeft.x << L"," << topLeft.y << L")\n右下点=(" << bottomRight.x << L"," << bottomRight.y << L")\n填充状态=" << (is_fill ? L"True" : L"False");
+		return ss.str();
+	}
 private:
     POINT topLeft;
     POINT bottomRight;
@@ -263,6 +277,15 @@ public:
     std::shared_ptr<Shape> clone() const override {
         return std::make_shared<Zhexian>(*this);
     }
+    std::wstring getInfo() const override {
+		std::wstringstream ss;
+		ss << L"折线:\n Points=\n";
+		for (const auto& pt : points) {
+			ss << L"(" << pt.x << L"," << pt.y << L")\n";
+		}
+		ss << L"填充状态=" << (is_fill ? L"True" : L"False");
+		return ss.str();
+	}
 private:
     std::vector<POINT> points;
 };
@@ -303,6 +326,12 @@ public:
     std::shared_ptr<Shape> clone() const override {
         return std::make_shared<Tuoyuan>(*this);
     }
+    std::wstring getInfo() const override {
+		std::wstringstream ss;
+		ss << L"椭圆: \n左上点=(" << topLeft.x << L"," << topLeft.y << L")\n右下点=(" << bottomRight.x << L"," << bottomRight.y << L")\nFill=" << (is_fill ? L"True" : L"False");
+		return ss.str();
+	}
+
 private:
     POINT topLeft;
     POINT bottomRight;
@@ -361,6 +390,15 @@ public:
     std::shared_ptr<Shape> clone() const override {
         return std::make_shared<Duo>(*this);
     }
+    std::wstring getInfo() const override {
+        std::wstringstream ss;
+        ss << L"多边形: \nPoints=\n";
+        for (const auto& pt : points) {
+            ss << L"(" << pt.x << L"," << pt.y << L")\n";
+        }
+        ss << L"\nFill=" << (is_fill ? L"True" : L"False");
+        return ss.str();
+    }
 private:
     std::vector<POINT> points;
 };
@@ -410,15 +448,31 @@ void DrawAllShapes() {
         Tuoyuan tempTuoyuan(startPoint, endPoint);
         tempTuoyuan.draw();
     }
-
-
-    // 绘制选中的形状的外框
     if (selectedIndex != -1) {
         RECT bbox = shapes[selectedIndex]->getBoundingBox();
         setlinecolor(YELLOW);
         rectangle(bbox.left - 5, bbox.top - 5, bbox.right + 5, bbox.bottom + 5);
         setlinecolor(WHITE);
+
+        // 显示信息
+        std::wstring info = shapes[selectedIndex]->getInfo();
+        settextstyle(18, 0, _T("Consolas")); // 设置字体样式
+        settextcolor(YELLOW);
+        //outtextxy(bbox.right - 200, bbox.bottom + 10, info.c_str()); // 在外框右下角显示信息
+        int y = bbox.bottom + 10; // 初始y坐标
+        for (size_t pos = 0; pos < info.length(); ) {
+            size_t next_pos = info.find(L'\n', pos);
+            if (next_pos == std::wstring::npos) {
+                next_pos = info.length();
+            }
+            outtextxy(bbox.left, y, info.substr(pos, next_pos - pos).c_str());
+            y += 20; // 调整y坐标以适应下一行
+            pos = next_pos + 1;
+        }
     }
+
+    // 绘制选中的形状的外框
+
     EndBatchDraw();
 }
 
@@ -441,6 +495,18 @@ int main() {
         drawButton();
         switch (msg.uMsg) {
         case WM_LBUTTONDOWN:
+            if (selectMode) {
+                for (size_t i = 0; i < shapes.size(); ++i) {
+                    RECT bbox = shapes[i]->getBoundingBox();
+                    if (pt.x >= bbox.left && pt.x <= bbox.right &&
+                        pt.y >= bbox.top && pt.y <= bbox.bottom) {
+                        selectedIndex = static_cast<int>(i);
+                        isDragging = true;
+                        lastMousePos = pt;
+                        break;
+                    }
+                }
+            }
             if (drawCircleButton.isInside(msg.x, msg.y)) {
                 updateButtonGroup(&drawCircleButton);
                 continue;
@@ -517,18 +583,7 @@ int main() {
 					DrawAllShapes();
 				}
             }
-            if (selectMode && isDragging == 0) {
-                for (size_t i = 0; i < shapes.size(); ++i) {
-                    RECT bbox = shapes[i]->getBoundingBox();
-                    if (pt.x >= bbox.left && pt.x <= bbox.right &&
-                        pt.y >= bbox.top && pt.y <= bbox.bottom) {
-                        selectedIndex = static_cast<int>(i);
-                        isDragging = true;
-                        lastMousePos = pt;
-                        break;
-                    }
-                }
-            }
+
 
             if (drawCircleMode) {
                 // 左键按下，开始绘制圆
