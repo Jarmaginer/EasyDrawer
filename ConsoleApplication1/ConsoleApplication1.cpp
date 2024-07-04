@@ -56,13 +56,14 @@ private:
     const WCHAR* text;
 
 };
-Button drawCircleButton(200, 0, 400, 50, _T("圆"));
-Button drawRectButton(400, 0, 500, 50, _T("长方形"));
-Button drawZhexianButton(500, 0, 600, 50, _T("折线"));
-Button drawDuoButton(600, 0, 700, 50, _T("多边形"));
-Button drawTuoYuanButton(700, 0, 800, 50, _T("椭圆"));
-Button selectShapeButton(800, 0, 900, 50, _T("选择"));
-Button zoomButton(900, 0, 1000, 50, _T("缩放"));
+Button drawCircleButton(200, 0, 300, 50, _T("圆"));
+Button drawRectButton(300, 0, 400, 50, _T("长方形"));
+Button drawZhexianButton(400, 0, 500, 50, _T("折线"));
+Button drawDuoButton(500, 0, 600, 50, _T("多边形"));
+Button drawTuoYuanButton(600, 0, 700, 50, _T("椭圆"));
+Button selectShapeButton(700, 0, 800, 50, _T("选择"));
+Button zoomButton(800, 0, 900, 50, _T("缩放"));
+Button fillButton(900, 0, 1000, 50, _T("填充"));
 Button copyButton(1000, 0, 1100, 50, _T("复制"));
 Button deleteButton(1100, 0, 1200, 50, _T("删除"));
 
@@ -102,6 +103,7 @@ void drawButton() {
     zoomButton.draw();
     copyButton.draw();
     deleteButton.draw();
+    fillButton.draw();
     EndBatchDraw();
 }
 
@@ -498,6 +500,12 @@ int main() {
                     // 重新绘制所有形状
                     DrawAllShapes();
                 }
+            }
+            else if (fillButton.isInside(msg.x, msg.y)) {
+				if (selectedIndex != -1) {
+					shapes[selectedIndex]->setFill(!shapes[selectedIndex]->is_fill);
+					DrawAllShapes();
+				}
             }
             if (selectMode && isDragging == 0) {
                 for (size_t i = 0; i < shapes.size(); ++i) {
