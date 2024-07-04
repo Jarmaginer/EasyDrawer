@@ -18,7 +18,7 @@
 #define zoomMode zoomButton.isPressed
 
 
-static int COLOR = RED;
+static int COLOR = WHITE;
 
 
 // 按钮类
@@ -120,7 +120,7 @@ Button* buttons[] = {
     &zoomButton
 };
 
-Button* coloerbuttons[] = {
+Button* colourbuttons[] = {
     &BlackButton,
     &RedButton,
     &GreenButton,
@@ -142,7 +142,7 @@ Button* coloerbuttons[] = {
 
 void drawButton();
 // 定义一个函数来更新按钮组状态
-void updateButtonGroup(Button* targetButton) {
+void pressButtom(Button* targetButton) {
     for (auto button : buttons) {
         if (button != targetButton) {
             button->release(); // 如果不是目标按钮，释放它
@@ -153,8 +153,8 @@ void updateButtonGroup(Button* targetButton) {
     }
 }
 
-void updateColourButtonGroup(Button* targetButton) {
-    for (auto button : coloerbuttons) {
+void pressColourButtom(Button* targetButton) {
+    for (auto button : colourbuttons) {
         if (button != targetButton) {
             button->release(); // 如果不是目标按钮，释放它
         }
@@ -207,6 +207,7 @@ public:
     virtual ~Shape() {}
     virtual std::shared_ptr<Shape> clone() const = 0;
     int color = COLOR;
+    int fillcolor = COLOR;
     bool is_fill = false; // 新增成员变量
     virtual void zoom(double factor, POINT center) = 0;
     virtual void setColor(int co) {
@@ -217,6 +218,9 @@ public:
     void setFill(bool fill) {
         this->is_fill = fill;
     }
+	virtual void setFillColour(int co) {
+		this->fillcolor = co;
+	}
 };
 
 // 派生类 Circle，表示圆形
@@ -226,7 +230,7 @@ public:
     void draw() const override {
         setlinecolor(color);
         if (is_fill) {
-            setfillcolor(RED);
+            setfillcolor(fillcolor);
             solidcircle(center.x, center.y, radius);
         }
         else {
@@ -270,7 +274,7 @@ public:
     void draw() const override {
         setlinecolor(color);
         if (is_fill) {
-            setfillcolor(RED);
+            setfillcolor(fillcolor);
             solidrectangle(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
         }
         else {
@@ -324,7 +328,7 @@ public:
     void draw() const override {
         if (points.size() < 2) return;
         if (is_fill && points.size() > 2) {
-            setfillcolor(RED);
+            setfillcolor(fillcolor);
             solidpolygon(&points[0], points.size());
         }
         else {
@@ -366,6 +370,11 @@ public:
     std::wstring getInfo() const override {
 		std::wstringstream ss;
 		ss << L"折线:\n Points=\n";
+		//for (int i = 0; i < sizeof(points) / sizeof(points[0]); i++)
+  //      {
+  //          if (i > 0 && (points[i].x == points[i - 1].x) && (points[i].y == points[i - 1].y)) continue;//避免重复
+		//	ss << L"(" << points[i].x << L"," << points[i].y << L")\n";
+		//}
 		for (const auto& pt : points) {
 			ss << L"(" << pt.x << L"," << pt.y << L")\n";
 		}
@@ -382,7 +391,7 @@ public:
     void draw() const override {
         setlinecolor(color);
         if (is_fill) {
-            setfillcolor(RED);
+            setfillcolor(fillcolor);
             solidellipse(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
         }
         else {
@@ -440,7 +449,7 @@ public:
         if (points.size() < 3) return;
         setlinecolor(color);
         if (is_fill) {
-            setfillcolor(RED);
+            setfillcolor(fillcolor);
             solidpolygon(&points[0], points.size());
         }
         else {
@@ -582,7 +591,7 @@ int main() {
         drawButton();
         switch (msg.uMsg) {
         case WM_LBUTTONDOWN:
-            if (selectMode) {
+            if (selectMode||zoomMode) {
                 for (size_t i = 0; i < shapes.size(); ++i) {
                     RECT bbox = shapes[i]->getBoundingBox();
                     if (pt.x >= bbox.left && pt.x <= bbox.right &&
@@ -594,123 +603,114 @@ int main() {
                     }
                 }
             }
-            if (drawCircleButton.isInside(msg.x, msg.y)) {
-                updateButtonGroup(&drawCircleButton);               
-                continue;
-            }
-            else if (BlackButton.isInside(msg.x, msg.y)) {
-                updateColourButtonGroup(&BlackButton);
+
+            if (BlackButton.isInside(msg.x, msg.y)) {
+                pressColourButtom(&BlackButton);
                 COLOR = BLACK;
                 continue;
             }
             else if (BlueButton.isInside(msg.x, msg.y)) {
-                updateColourButtonGroup(&BlueButton);
+                pressColourButtom(&BlueButton);
                 COLOR = BLUE;
                 continue;
 
             }
             else if (GreenButton.isInside(msg.x, msg.y)) {
-                updateColourButtonGroup(&GreenButton);
+                pressColourButtom(&GreenButton);
                 COLOR = GREEN;
                 continue;
             }
             else if (CyanButton.isInside(msg.x, msg.y)) {
-                updateColourButtonGroup(&CyanButton);
+                pressColourButtom(&CyanButton);
                 COLOR =  CYAN;
                 continue;
             }
             else if (RedButton.isInside(msg.x, msg.y)) {
-                updateColourButtonGroup(&RedButton);
+                pressColourButtom(&RedButton);
                 COLOR = RED;
                 continue;
             }
             else if (MagentaButton.isInside(msg.x, msg.y)) {
-                updateColourButtonGroup(&MagentaButton);
+                pressColourButtom(&MagentaButton);
                 COLOR = MAGENTA;
                 continue;
             }
             else if (BrownButton.isInside(msg.x, msg.y)) {
-                updateColourButtonGroup(&BrownButton);
+                pressColourButtom(&BrownButton);
                 COLOR = BROWN;
                 continue;
             }
             else if (LightGrayButton.isInside(msg.x, msg.y)) {
-                updateColourButtonGroup(&LightGrayButton);
+                pressColourButtom(&LightGrayButton);
                 COLOR = LIGHTGRAY;
                 continue;
             }
             else if (DarkGrayButton.isInside(msg.x, msg.y)) {
-                updateColourButtonGroup(&DarkGrayButton);
+                pressColourButtom(&DarkGrayButton);
                 COLOR = DARKGRAY;
                 continue;
             }
             else if (LightBlueButton.isInside(msg.x, msg.y)) {
-                updateColourButtonGroup(&LightBlueButton);
+                pressColourButtom(&LightBlueButton);
                 COLOR= LIGHTBLUE;
                 continue;
             }
             else if (LightGreenButton.isInside(msg.x, msg.y)) {
-                updateColourButtonGroup(&LightGreenButton);
+                pressColourButtom(&LightGreenButton);
                 COLOR = LIGHTGREEN;
                 continue;
             }
             else if (LightCyanButton.isInside(msg.x, msg.y)) {
-                updateColourButtonGroup(&LightCyanButton);
+                pressColourButtom(&LightCyanButton);
                 COLOR = LIGHTCYAN;
                 continue;
             }
             else if (LightRedButton.isInside(msg.x, msg.y)) {
-                updateColourButtonGroup(&LightRedButton);
+                pressColourButtom(&LightRedButton);
                 COLOR = LIGHTRED;
                 continue;
             }
             else if (LightMagentaButton.isInside(msg.x, msg.y)) {
-                updateColourButtonGroup(&LightMagentaButton);
+                pressColourButtom(&LightMagentaButton);
                 COLOR = LIGHTMAGENTA;
                 continue;
             }
             else if (YellowButton.isInside(msg.x, msg.y)) {
-                updateColourButtonGroup(&YellowButton);
+                pressColourButtom(&YellowButton);
                 COLOR = YELLOW;
                 continue;
             }
             else if (WhiteButton.isInside(msg.x, msg.y)) {
-                updateColourButtonGroup(&WhiteButton);
+                pressColourButtom(&WhiteButton);
                 COLOR = WHITE;
                 continue;
             }
             if (drawCircleButton.isInside(msg.x, msg.y)) {
-                updateButtonGroup(&drawCircleButton);
+                pressButtom(&drawCircleButton);
                 continue;
             }
             else if (drawRectButton.isInside(msg.x, msg.y)) {
-                updateButtonGroup(&drawRectButton);
+                pressButtom(&drawRectButton);
                 continue;
             }
             else if (drawZhexianButton.isInside(msg.x, msg.y)) {
-                updateButtonGroup(&drawZhexianButton);
+                pressButtom(&drawZhexianButton);
                 continue;
             }
             else if (drawDuoButton.isInside(msg.x, msg.y)) {
-                updateButtonGroup(&drawDuoButton);
+                pressButtom(&drawDuoButton);
                 continue;
             }
             else if (selectShapeButton.isInside(msg.x, msg.y)) {
-                updateButtonGroup(&selectShapeButton);
+                pressButtom(&selectShapeButton);
                 continue;
             }
             else if (drawTuoYuanButton.isInside(msg.x, msg.y)) {
-                updateButtonGroup(&drawTuoYuanButton);
+                pressButtom(&drawTuoYuanButton);
                 continue;
             }
             else if (zoomButton.isInside(msg.x, msg.y)) {
-                if (selectedIndex == -1) {
-                    HWND hnd = GetHWnd();
-
-                    MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
-                    continue;
-                }
-				updateButtonGroup(&zoomButton);
+				pressButtom(&zoomButton);
                 continue;
             }
             else if (copyButton.isInside(msg.x, msg.y)) {
@@ -752,8 +752,15 @@ int main() {
             else if (fillButton.isInside(msg.x, msg.y)) {
 				if (selectedIndex != -1) {
 					shapes[selectedIndex]->setFill(!shapes[selectedIndex]->is_fill);
+					shapes[selectedIndex]->setFillColour(COLOR);
 					DrawAllShapes();
-				}
+                }
+                else {
+                    HWND hnd = GetHWnd();
+
+                    MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
+                    continue;
+                }
             }
 
 
