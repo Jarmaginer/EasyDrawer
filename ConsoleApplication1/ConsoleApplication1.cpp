@@ -56,7 +56,7 @@ private:
     const WCHAR* text;
 
 };
-Button drawCircleButton(300, 0, 400, 50, _T("圆"));
+Button drawCircleButton(200, 0, 400, 50, _T("圆"));
 Button drawRectButton(400, 0, 500, 50, _T("长方形"));
 Button drawZhexianButton(500, 0, 600, 50, _T("折线"));
 Button drawDuoButton(600, 0, 700, 50, _T("多边形"));
