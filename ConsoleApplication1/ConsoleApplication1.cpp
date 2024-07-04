@@ -17,6 +17,9 @@
 #define selectMode selectShapeButton.isPressed
 #define zoomMode zoomButton.isPressed
 #define layerEditMode layerEditButton.isPressed
+#define modifyLineWidthMode modifyLineWidthButton.isPressed
+
+#define canBeSelected (selectMode || zoomMode || layerEditMode || modifyLineWidthMode)
 
 static int COLOR = WHITE;
 int selectedIndex = -1;
@@ -131,9 +134,8 @@ Button fillButton(900, 0, 1000, 50, _T("填充"));
 Button copyButton(1000, 0, 1100, 50, _T("复制"));
 Button deleteButton(1100, 0, 1200, 50, _T("删除"));
 Button changeLineStyleButton(1200, 0, 1300, 50, _T("改变线型"));
-Button addLineWidthButton(1300, 0, 1400, 50, _T("增加线宽"));
-Button reduceLineWidthButton(1400, 0, 1500, 50, _T("减小线宽"));
-Button layerEditButton(1500, 0, 1600, 50, _T("图层编辑"));
+Button modifyLineWidthButton(1300, 0, 1400, 50, _T("修改线宽"));
+Button layerEditButton(1400, 0, 1500, 50, _T("图层编辑"));
 
 Button WhiteButton(0, 0, 25, 25, _T(""));
 Button RedButton(25, 0, 50, 25, _T(""));
@@ -160,7 +162,8 @@ Button* buttons[] = {
     &drawTuoYuanButton,
     &selectShapeButton,
     &zoomButton,
-	&layerEditButton
+	&layerEditButton,
+    &modifyLineWidthButton
 };
 
 Button* colourbuttons[] = {
@@ -201,8 +204,7 @@ void drawButton() {
     layerEditButton.draw();
 
 	changeLineStyleButton.draw();
-	addLineWidthButton.draw();
-	reduceLineWidthButton.draw();
+    modifyLineWidthButton.draw();
 
     BlackButton.drawColorButtom(BLACK);
     RedButton.drawColorButtom(RED);
@@ -719,11 +721,11 @@ int main() {
         drawButton();
         POINT pt = { msg.x, msg.y };
 
-        if (!selectMode && !zoomMode && !layerEditMode) { selectedIndex = -1; }
+        if (!canBeSelected) { selectedIndex = -1; }
 
         switch (msg.uMsg) {
         case WM_LBUTTONDOWN:
-            if (selectMode||zoomMode||layerEditMode) {
+            if (canBeSelected) {
                 for (size_t i = 0; i < shapes.size(); ++i) {
                     RECT bbox = shapes[i]->getBoundingBox();
                     if (pt.x >= bbox.left && pt.x <= bbox.right &&
@@ -736,6 +738,11 @@ int main() {
                 }
                 DrawAllShapes();
             }
+			if (modifyLineWidthButton.isInside(msg.x, msg.y))
+            {
+				pressButtom(&modifyLineWidthButton);
+				continue;
+			}
             if (layerEditButton.isInside(msg.x, msg.y)) {
                 pressButtom(&layerEditButton);
                 continue;
@@ -926,30 +933,6 @@ int main() {
 					continue;
 				}
             }
-            else if (addLineWidthButton.isInside(msg.x, msg.y)) {
-				if (selectedIndex != -1) {
-					shapes[selectedIndex]->addLineWidth();
-					DrawAllShapes();
-				}
-                else {
-					HWND hnd = GetHWnd();
-
-					MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
-					continue;
-				}
-			}
-            else if (reduceLineWidthButton.isInside(msg.x, msg.y)) {
-				if (selectedIndex != -1) {
-					shapes[selectedIndex]->reduceLineWidth();
-					DrawAllShapes();
-				}
-                else {
-					HWND hnd = GetHWnd();
-
-					MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
-					continue;
-				}
-            }
 
             if (drawCircleMode) {
                 // 左键按下，开始绘制圆
@@ -991,7 +974,7 @@ int main() {
                     DrawAllShapes();
                 }
             }
-            else if ((selectMode || zoomMode || layerEditMode) && selectedIndex != -1) {
+            else if ((canBeSelected) && selectedIndex != -1) {
                 // 左键按下，开始拖动选中的图形
                 isDragging = true;
                 lastMousePos = pt;
@@ -1129,6 +1112,22 @@ int main() {
                     }
                     DrawAllShapes();
             }
+			if (modifyLineWidthMode) {
+                if (selectedIndex == -1) {
+                    HWND hnd = GetHWnd();
+                    MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
+                }
+                else {
+					short temp = msg.wheel;
+					if (temp == 120) {
+						shapes[selectedIndex]->addLineWidth();
+					}
+					else {
+						shapes[selectedIndex]->reduceLineWidth();
+					}
+					DrawAllShapes();
+                }
+			}
             break;
 
         case WM_MBUTTONDOWN:
