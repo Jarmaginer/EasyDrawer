@@ -8,6 +8,7 @@
 #include <codecvt>
 #include <locale>
 #include <sstream>
+#include <algorithm>
 
 #define drawCircleMode drawCircleButton.isPressed
 #define drawRectMode drawRectButton.isPressed
@@ -20,6 +21,8 @@
 #define modifyLineWidthMode modifyLineWidthButton.isPressed
 
 #define canBeSelected (selectMode || zoomMode || layerEditMode || modifyLineWidthMode)
+
+
 
 static int COLOR = WHITE;
 int selectedIndex = -1;
@@ -135,7 +138,9 @@ Button copyButton(1000, 0, 1100, 50, _T("复制"));
 Button deleteButton(1100, 0, 1200, 50, _T("删除"));
 Button changeLineStyleButton(1200, 0, 1300, 50, _T("改变线型"));
 Button modifyLineWidthButton(1300, 0, 1400, 50, _T("修改线宽"));
-Button layerEditButton(1400, 0, 1500, 50, _T("图层编辑"));
+Button insertImageButton(1400, 0, 1500, 50, _T("置入图片"));
+Button layerEditButton(1500, 0, 1600, 50, _T("图层编辑"));
+
 
 Button WhiteButton(0, 0, 25, 25, _T(""));
 Button RedButton(25, 0, 50, 25, _T(""));
@@ -186,7 +191,20 @@ Button* colourbuttons[] = {
 
 };
 
-
+LPCWSTR stringToLPCWSTR(std::string str)
+{
+    size_t size = str.length();
+    int wLen = ::MultiByteToWideChar(CP_UTF8,
+        0,
+        str.c_str(),
+        -1,
+        NULL,
+        0);
+    wchar_t* buffer = new wchar_t[wLen + 1];
+    memset(buffer, 0, (wLen + 1) * sizeof(wchar_t));
+    MultiByteToWideChar(CP_ACP, 0, str.c_str(), size, (LPWSTR)buffer, wLen);
+    return buffer;
+}
 
 
 void drawButton() {
@@ -202,6 +220,7 @@ void drawButton() {
     deleteButton.draw();
     fillButton.draw();
     layerEditButton.draw();
+    insertImageButton.draw();
 
 	changeLineStyleButton.draw();
     modifyLineWidthButton.draw();
@@ -224,7 +243,6 @@ void drawButton() {
     WhiteButton.drawColorButtom(WHITE);
     EndBatchDraw();
 }
-
 
 
 class Shape {
@@ -271,7 +289,68 @@ public:
     }
 };
 
+class Image : public Shape {
+public:
+    Image() : Shape(), filename("") {}
 
+    // 从文件加载图片
+    bool loadImage(const std::string& filename) {
+        this->filename = filename;
+        loadimage(&m_image, stringToLPCWSTR(filename));
+		if (&m_image != NULL) {
+            width = m_image.getwidth();
+            height = m_image.getheight();
+            return true;
+        }
+        return false;
+    }
+
+    // 绘制图片
+    void draw() const override {
+        putimage(topLeft.x, topLeft.y, width , height ,&m_image,0,0);
+    }
+
+    // 获取边界框
+    RECT getBoundingBox() const override {
+        return { topLeft.x, topLeft.y, topLeft.x + width, topLeft.y + height};
+    }
+
+    // 移动图片
+    void move(int dx, int dy) override {
+        topLeft.x += dx;
+        topLeft.y += dy;
+    }
+
+    // 缩放图片
+    void zoom(double factor, POINT zoomCenter) override {
+        int dx = topLeft.x - zoomCenter.x;
+        int dy = topLeft.y - zoomCenter.y;
+        topLeft.x = static_cast<int>(zoomCenter.x + dx * factor);
+        topLeft.y = static_cast<int>(zoomCenter.y + dy * factor);
+        width = static_cast<int>(width * factor);
+        height = static_cast<int>(height * factor);
+        loadimage(&m_image, stringToLPCWSTR(filename), width, height);
+    }
+
+    // 克隆图片
+    std::shared_ptr<Shape> clone() const override {
+        return std::make_shared<Image>(*this);
+    }
+
+    // 获取图片信息
+    std::wstring getInfo() const override {
+        std::wstringstream ss;
+        ss << L"图片: \n左上点=(" << topLeft.x << L"," << topLeft.y << L")\n宽度=" << width << L"\n高度=" << height;
+        ss << L"\n文件名=" << std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
+        return ss.str();
+    }
+
+private:
+    std::string filename;
+    POINT topLeft = {100,100};
+    int width, height;
+    IMAGE m_image;
+};
 // 派生类 Circle，表示圆形
 class Circle : public Shape {
 public:
@@ -706,6 +785,21 @@ void pressColourButtom(Button* targetButton) {
 
 }
 
+
+std::string convertTCharToString(TCHAR* tcharStr)
+{
+    std::string result;
+#if defined(_UNICODE) || defined(UNICODE)
+    // 如果项目使用Unicode，需要从宽字符字符串转换
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
+    result = myconv.to_bytes(tcharStr);
+#else
+    // 如果项目不使用Unicode，可以直接转换
+    result = tcharStr;
+#endif
+    return result;
+}
+
 int main() {
     // 初始化图形窗口
     initgraph(1600, 900);
@@ -724,25 +818,43 @@ int main() {
 
         switch (msg.uMsg) {
         case WM_LBUTTONDOWN:
-            if (canBeSelected) {
-                for (size_t i = 0; i < shapes.size(); ++i) {
-                    RECT bbox = shapes[i]->getBoundingBox();
-                    if (pt.x >= bbox.left && pt.x <= bbox.right &&
-                        pt.y >= bbox.top && pt.y <= bbox.bottom) {
-                        selectedIndex = static_cast<int>(i);
-                        isDragging = true;
-                        lastMousePos = pt;
-                        break;
+
+            if (insertImageButton.isInside(msg.x, msg.y)) {
+                // 打开文件对话框选择图片
+                OPENFILENAME ofn;
+                TCHAR szFile[260] = { 0 };
+                ZeroMemory(&ofn, sizeof(ofn));
+                ofn.lStructSize = sizeof(ofn);
+                ofn.hwndOwner = GetHWnd();
+                ofn.lpstrFile = szFile;
+                ofn.nMaxFile = sizeof(szFile);
+                ofn.lpstrFilter = _T("图像文件(*.bmp;*.jpg;*.png)\0*.bmp;*.jpg;*.png\0");
+                ofn.nFilterIndex = 1;
+                ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+                if (GetOpenFileName(&ofn)) {
+                    // 成功选择了图片文件
+                    // 创建Image对象并加载图片
+                    std::string filePath = convertTCharToString(szFile);
+                    std::shared_ptr<Image> image = std::make_shared<Image>();
+                    if (image->loadImage(filePath)) {
+                        // 图片加载成功，将其添加到shapes向量中
+                        shapes.push_back(image);
+                        DrawAllShapes();
+                    }
+                    else {
+                        // 显示错误消息
+                        HWND hnd = GetHWnd();
+                        MessageBox(hnd, _T("无法加载图片"), _T("错误"), MB_OK);
                     }
                 }
-                DrawAllShapes();
             }
-			if (modifyLineWidthButton.isInside(msg.x, msg.y))
+			else if (modifyLineWidthButton.isInside(msg.x, msg.y))
             {
 				pressButtom(&modifyLineWidthButton);
 				continue;
 			}
-            if (layerEditButton.isInside(msg.x, msg.y)) {
+            else if (layerEditButton.isInside(msg.x, msg.y)) {
                 pressButtom(&layerEditButton);
                 continue;
             }
@@ -843,7 +955,7 @@ int main() {
 
                 continue;
             }
-            if (drawCircleButton.isInside(msg.x, msg.y)) {
+            else if (drawCircleButton.isInside(msg.x, msg.y)) {
                 pressButtom(&drawCircleButton);
                 continue;
             }
@@ -933,7 +1045,21 @@ int main() {
 				}
             }
 
-            if (drawCircleMode) {
+            else if (canBeSelected) {
+                for (size_t i = 0; i < shapes.size(); ++i) {
+                    RECT bbox = shapes[i]->getBoundingBox();
+                    if (pt.x >= bbox.left && pt.x <= bbox.right &&
+                        pt.y >= bbox.top && pt.y <= bbox.bottom) {
+                        selectedIndex = static_cast<int>(i);
+
+                        break;
+                    }
+                }
+                isDragging = true;
+                lastMousePos = pt;
+                DrawAllShapes();
+                }
+            else if (drawCircleMode) {
                 // 左键按下，开始绘制圆
                 isDrawingCircle = true;
                 startPoint = pt;
@@ -973,11 +1099,7 @@ int main() {
                     DrawAllShapes();
                 }
             }
-            else if ((canBeSelected) && selectedIndex != -1) {
-                // 左键按下，开始拖动选中的图形
-                isDragging = true;
-                lastMousePos = pt;
-            }
+
             break;
 
         case WM_RBUTTONDOWN:
