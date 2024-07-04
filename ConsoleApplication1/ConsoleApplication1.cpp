@@ -26,12 +26,8 @@ class Button {
 public:
     Button(int left, int top, int right, int bottom, const TCHAR* text)
         : left(left), top(top), right(right), bottom(bottom), text(text), isPressed(false) {}
-    void draw2(int color)
+    void drawColorButtom(int color)
     {
-        //填充
-
-
-
         if (isPressed) {
             setlinecolor(RED);
         }
@@ -178,22 +174,22 @@ void drawButton() {
     copyButton.draw();
     deleteButton.draw();
     fillButton.draw();
-    BlackButton.draw2(BLACK);
-    RedButton.draw2(RED);
-    GreenButton.draw2(GREEN);
-    BlueButton.draw2(BLUE);
-    MagentaButton.draw2(MAGENTA);
-    BrownButton.draw2(BROWN);
-    LightGrayButton.draw2(LIGHTGRAY);
-    DarkGrayButton.draw2(DARKGRAY);
-    LightBlueButton.draw2(LIGHTBLUE);
-    LightGreenButton.draw2(LIGHTGREEN);
-    LightCyanButton.draw2(LIGHTCYAN);
-    LightRedButton.draw2(LIGHTRED);
-    LightMagentaButton.draw2(LIGHTMAGENTA);
-    CyanButton.draw2(CYAN);
-    YellowButton.draw2(YELLOW);
-    WhiteButton.draw2(WHITE);
+    BlackButton.drawColorButtom(BLACK);
+    RedButton.drawColorButtom(RED);
+    GreenButton.drawColorButtom(GREEN);
+    BlueButton.drawColorButtom(BLUE);
+    MagentaButton.drawColorButtom(MAGENTA);
+    BrownButton.drawColorButtom(BROWN);
+    LightGrayButton.drawColorButtom(LIGHTGRAY);
+    DarkGrayButton.drawColorButtom(DARKGRAY);
+    LightBlueButton.drawColorButtom(LIGHTBLUE);
+    LightGreenButton.drawColorButtom(LIGHTGREEN);
+    LightCyanButton.drawColorButtom(LIGHTCYAN);
+    LightRedButton.drawColorButtom(LIGHTRED);
+    LightMagentaButton.drawColorButtom(LIGHTMAGENTA);
+    CyanButton.drawColorButtom(CYAN);
+    YellowButton.drawColorButtom(YELLOW);
+    WhiteButton.drawColorButtom(WHITE);
     EndBatchDraw();
 }
 
@@ -208,7 +204,7 @@ public:
     virtual std::shared_ptr<Shape> clone() const = 0;
     int color = COLOR;
     int fillcolor = COLOR;
-    bool is_fill = false; // 新增成员变量
+    bool is_fill = false;
     virtual void zoom(double factor, POINT center) = 0;
     virtual void setColor(int co) {
         this->color = co;
@@ -232,6 +228,7 @@ public:
         if (is_fill) {
             setfillcolor(fillcolor);
             solidcircle(center.x, center.y, radius);
+            circle(center.x, center.y, radius);
         }
         else {
             circle(center.x, center.y, radius);
@@ -276,6 +273,7 @@ public:
         if (is_fill) {
             setfillcolor(fillcolor);
             solidrectangle(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
+            rectangle(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
         }
         else {
             rectangle(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
@@ -330,6 +328,10 @@ public:
         if (is_fill && points.size() > 2) {
             setfillcolor(fillcolor);
             solidpolygon(&points[0], points.size());
+            for (size_t i = 0; i < points.size() - 1; ++i) {
+                setlinecolor(color);
+                line(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
+            }
         }
         else {
             for (size_t i = 0; i < points.size() - 1; ++i) {
@@ -393,6 +395,7 @@ public:
         if (is_fill) {
             setfillcolor(fillcolor);
             solidellipse(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
+            ellipse(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
         }
         else {
             ellipse(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
@@ -451,6 +454,7 @@ public:
         if (is_fill) {
             setfillcolor(fillcolor);
             solidpolygon(&points[0], points.size());
+            polygon(&points[0], points.size());
         }
         else {
             polygon(&points[0], points.size());
@@ -576,7 +580,7 @@ void DrawAllShapes() {
 
 int main() {
     // 初始化图形窗口
-    initgraph(1200, 800);
+    initgraph(1600, 900);
     setbkcolor(BLACK);
     cleardevice();
     drawCircleButton.press();
