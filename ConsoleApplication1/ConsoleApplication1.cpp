@@ -19,6 +19,7 @@
 
 
 static int COLOR = WHITE;
+int selectedIndex = -1;
 
 std::wstring colorToString(int color) {
 	switch (color) {
@@ -176,31 +177,8 @@ Button* colourbuttons[] = {
 
 };
 
-void drawButton();
-// 定义一个函数来更新按钮组状态
-void pressButtom(Button* targetButton) {
-    for (auto button : buttons) {
-        if (button != targetButton) {
-            button->release(); // 如果不是目标按钮，释放它
-        }
-        else {
-            button->press();   // 如果是目标按钮，按下去
-        }
-    }
-}
-
-void pressColourButtom(Button* targetButton) {
-    for (auto button : colourbuttons) {
-        if (button != targetButton) {
-            button->release(); // 如果不是目标按钮，释放它
-        }
-        else {
-            button->press();   // 如果是目标按钮，按下去
-        }
-    }
 
 
-}
 
 void drawButton() {
     BeginBatchDraw();
@@ -234,7 +212,7 @@ void drawButton() {
 }
 
 
-// 基类 Shape，所有图形的抽象基类
+
 class Shape {
 public:
     virtual void draw() const = 0;
@@ -249,15 +227,16 @@ public:
     virtual void setColor(int co) {
         this->color = co;
     }
-	virtual std::wstring getInfo() const = 0;
+    virtual std::wstring getInfo() const = 0;
 
     void setFill(bool fill) {
         this->is_fill = fill;
     }
-	virtual void setFillColour(int co) {
-		this->fillcolor = co;
-	}
+    virtual void setFillColour(int co) {
+        this->fillcolor = co;
+    }
 };
+
 
 // 派生类 Circle，表示圆形
 class Circle : public Shape {
@@ -568,7 +547,6 @@ bool isDrawingDuo = false;
 bool isDrawingTuoyuan = false;
 POINT startPoint;
 POINT endPoint;
-int selectedIndex = -1;
 bool isDragging = false;
 POINT lastMousePos;
 
@@ -631,7 +609,34 @@ void DrawAllShapes() {
 }
 
 
+// 定义一个函数来更新按钮组状态
+void pressButtom(Button* targetButton) {
+    for (auto button : buttons) {
+        if (button != targetButton) {
+            button->release(); // 如果不是目标按钮，释放它
+        }
+        else {
+            button->press();   // 如果是目标按钮，按下去
+        }
+    }
+}
 
+void pressColourButtom(Button* targetButton) {
+    for (auto button : colourbuttons) {
+        if (button != targetButton) {
+            button->release(); // 如果不是目标按钮，释放它
+        }
+        else {
+            button->press();   // 如果是目标按钮，按下去
+            if (selectedIndex != -1) {
+                shapes[selectedIndex]->setColor(COLOR);
+                DrawAllShapes();
+            }
+        }
+    }
+
+
+}
 
 int main() {
     // 初始化图形窗口
@@ -664,84 +669,100 @@ int main() {
             }
 
             if (BlackButton.isInside(msg.x, msg.y)) {
-                pressColourButtom(&BlackButton);
                 COLOR = BLACK;
+                pressColourButtom(&BlackButton);
+
                 continue;
             }
             else if (BlueButton.isInside(msg.x, msg.y)) {
-                pressColourButtom(&BlueButton);
                 COLOR = BLUE;
+                pressColourButtom(&BlueButton);
+
                 continue;
 
             }
             else if (GreenButton.isInside(msg.x, msg.y)) {
-                pressColourButtom(&GreenButton);
                 COLOR = GREEN;
+                pressColourButtom(&GreenButton);
+
                 continue;
             }
             else if (CyanButton.isInside(msg.x, msg.y)) {
+                COLOR = CYAN;
                 pressColourButtom(&CyanButton);
-                COLOR =  CYAN;
+
                 continue;
             }
             else if (RedButton.isInside(msg.x, msg.y)) {
-                pressColourButtom(&RedButton);
                 COLOR = RED;
+                pressColourButtom(&RedButton);
+
                 continue;
             }
             else if (MagentaButton.isInside(msg.x, msg.y)) {
-                pressColourButtom(&MagentaButton);
                 COLOR = MAGENTA;
+                pressColourButtom(&MagentaButton);
+
                 continue;
             }
             else if (BrownButton.isInside(msg.x, msg.y)) {
-                pressColourButtom(&BrownButton);
                 COLOR = BROWN;
+                pressColourButtom(&BrownButton);
+
                 continue;
             }
             else if (LightGrayButton.isInside(msg.x, msg.y)) {
-                pressColourButtom(&LightGrayButton);
                 COLOR = LIGHTGRAY;
+                pressColourButtom(&LightGrayButton);
+
                 continue;
             }
             else if (DarkGrayButton.isInside(msg.x, msg.y)) {
-                pressColourButtom(&DarkGrayButton);
                 COLOR = DARKGRAY;
+                pressColourButtom(&DarkGrayButton);
+
                 continue;
             }
             else if (LightBlueButton.isInside(msg.x, msg.y)) {
+                COLOR = LIGHTBLUE;
                 pressColourButtom(&LightBlueButton);
-                COLOR= LIGHTBLUE;
+
                 continue;
             }
             else if (LightGreenButton.isInside(msg.x, msg.y)) {
-                pressColourButtom(&LightGreenButton);
                 COLOR = LIGHTGREEN;
+                pressColourButtom(&LightGreenButton);
+
                 continue;
             }
             else if (LightCyanButton.isInside(msg.x, msg.y)) {
-                pressColourButtom(&LightCyanButton);
                 COLOR = LIGHTCYAN;
+                pressColourButtom(&LightCyanButton);
+
                 continue;
             }
             else if (LightRedButton.isInside(msg.x, msg.y)) {
-                pressColourButtom(&LightRedButton);
                 COLOR = LIGHTRED;
+                pressColourButtom(&LightRedButton);
+
                 continue;
             }
             else if (LightMagentaButton.isInside(msg.x, msg.y)) {
-                pressColourButtom(&LightMagentaButton);
                 COLOR = LIGHTMAGENTA;
+                pressColourButtom(&LightMagentaButton);
+
                 continue;
             }
             else if (YellowButton.isInside(msg.x, msg.y)) {
-                pressColourButtom(&YellowButton);
                 COLOR = YELLOW;
+                pressColourButtom(&YellowButton);
+
                 continue;
             }
             else if (WhiteButton.isInside(msg.x, msg.y)) {
-                pressColourButtom(&WhiteButton);
                 COLOR = WHITE;
+                pressColourButtom(&WhiteButton);
+
                 continue;
             }
             if (drawCircleButton.isInside(msg.x, msg.y)) {
