@@ -20,6 +20,46 @@
 
 static int COLOR = WHITE;
 
+std::wstring colorToString(int color) {
+	switch (color) {
+	case BLACK:
+		return L"黑色";
+	case BLUE:
+		return L"蓝色";
+	case GREEN:
+		return L"绿色";
+	case CYAN:
+		return L"青色";
+	case RED:
+		return L"红色";
+	case MAGENTA:
+		return L"品红";
+	case BROWN:
+		return L"棕色";
+	case LIGHTGRAY:
+		return L"浅灰色";
+	case DARKGRAY:
+		return L"深灰色";
+	case LIGHTBLUE:
+		return L"浅蓝色";
+	case LIGHTGREEN:
+		return L"浅绿色";
+	case LIGHTCYAN:
+		return L"浅青色";
+	case LIGHTRED:
+		return L"浅红色";
+	case LIGHTMAGENTA:
+		return L"浅品红";
+	case YELLOW:
+		return L"黄色";
+	case WHITE:
+		return L"白色";
+	default:
+		return L"色值="+std::to_wstring(color);
+	}
+
+}
+
 
 // 按钮类
 class Button {
@@ -251,7 +291,11 @@ public:
     }
     std::wstring getInfo() const override {
         std::wstringstream ss;
-        ss << L"圆: \n半径=" << radius << L"\n圆心=(" << center.x << L"," << center.y << L")\n填充状态=" << (is_fill ? L"True" : L"False");
+        ss << L"圆: \n半径=" << radius << L"\n圆心=(" << center.x << L"," << center.y;
+        ss << L"\n线条颜色=" << colorToString(color);
+        if (is_fill) {
+			ss << L"\n填充颜色=" << colorToString(fillcolor);
+        }
         return ss.str();
     }
 
@@ -304,7 +348,11 @@ public:
     }
     std::wstring getInfo() const override {
 		std::wstringstream ss;
-		ss << L"矩形: \n左上点=(" << topLeft.x << L"," << topLeft.y << L")\n右下点=(" << bottomRight.x << L"," << bottomRight.y << L")\n填充状态=" << (is_fill ? L"True" : L"False");
+		ss << L"矩形: \n左上点=(" << topLeft.x << L"," << topLeft.y << L")\n右下点=(" << bottomRight.x << L"," << bottomRight.y;
+        ss << L"\n线条颜色=" << colorToString(color);
+        if (is_fill) {
+            ss << L"\n填充颜色=" << colorToString(fillcolor);
+        }
 		return ss.str();
 	}
 private:
@@ -378,9 +426,12 @@ public:
 		//	ss << L"(" << points[i].x << L"," << points[i].y << L")\n";
 		//}
 		for (const auto& pt : points) {
-			ss << L"(" << pt.x << L"," << pt.y << L")\n";
+			ss << L"(" << pt.x << L"," << pt.y << L")";
 		}
-		ss << L"填充状态=" << (is_fill ? L"True" : L"False");
+        ss << L"\n线条颜色=" << colorToString(color);
+        if (is_fill) {
+            ss << L"\n填充颜色=" << colorToString(fillcolor);
+        }
 		return ss.str();
 	}
 private:
@@ -426,7 +477,11 @@ public:
     }
     std::wstring getInfo() const override {
 		std::wstringstream ss;
-		ss << L"椭圆: \n左上点=(" << topLeft.x << L"," << topLeft.y << L")\n右下点=(" << bottomRight.x << L"," << bottomRight.y << L")\nFill=" << (is_fill ? L"True" : L"False");
+		ss << L"椭圆: \n左上点=(" << topLeft.x << L"," << topLeft.y << L")\n右下点=(" << bottomRight.x << L"," << bottomRight.y;
+        ss << L"\n线条颜色=" << colorToString(color);
+        if (is_fill) {
+            ss << L"\n填充颜色=" << colorToString(fillcolor);
+        }
 		return ss.str();
 	}
 
