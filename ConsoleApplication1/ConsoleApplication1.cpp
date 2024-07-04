@@ -571,7 +571,10 @@ public:
         for (const auto& pt : points) {
             ss << L"(" << pt.x << L"," << pt.y << L")";
         }
-        ss << L"\nFill=" << (is_fill ? L"True" : L"False");
+        ss << L"\n线条颜色=" << colorToString(color);
+        if (is_fill) {
+            ss << L"\n填充颜色=" << colorToString(fillcolor);
+        }
         return ss.str();
     }
 private:
@@ -709,6 +712,7 @@ int main() {
                         break;
                     }
                 }
+                DrawAllShapes();
             }
 
             if (BlackButton.isInside(msg.x, msg.y)) {
