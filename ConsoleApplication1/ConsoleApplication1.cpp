@@ -17,6 +17,8 @@
 #define zoomMode zoomButton.isPressed
 
 
+static int COLOR = RED;
+
 // 按钮类
 class Button {
 public:
@@ -77,6 +79,7 @@ Button* buttons[] = {
     &selectShapeButton,
     &zoomButton
 };
+
 
 // 定义一个函数来更新按钮组状态
 void updateButtonGroup(Button* targetButton) {
@@ -427,12 +430,13 @@ int main() {
     initgraph(1200, 800);
     setbkcolor(BLACK);
     cleardevice();
-
+    drawCircleButton.press();
     while (true) {
         // 获取鼠标消息
         MOUSEMSG msg = GetMouseMsg();
 
         POINT pt = { msg.x, msg.y };
+
         if (!selectMode && !zoomMode) { selectedIndex = -1; }
         drawButton();
         switch (msg.uMsg) {
@@ -468,16 +472,16 @@ int main() {
                     MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
                     continue;
                 }
-                drawCircleButton.release();
-                drawRectButton.release();
-                drawZhexianButton.release();
-                drawDuoButton.release();
-                selectShapeButton.release();
-                drawTuoYuanButton.release();
-                zoomButton.press();
+				updateButtonGroup(&zoomButton);
                 continue;
             }
             else if (copyButton.isInside(msg.x, msg.y)) {
+                if (selectedIndex == -1) {
+                    HWND hnd = GetHWnd();
+
+                    MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
+                    continue;
+                }
                 if (selectedIndex != -1) {
                     // 复制选定的形状
                     std::shared_ptr<Shape> copiedShape = shapes[selectedIndex]->clone(); // 假设Shape类有clone方法
@@ -492,6 +496,12 @@ int main() {
                 }
             }
             else if (deleteButton.isInside(msg.x, msg.y)) {
+                if (selectedIndex == -1) {
+                    HWND hnd = GetHWnd();
+
+                    MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
+                    continue;
+                }
                 if (selectedIndex != -1) {
                     // 删除选中的形状
                     shapes.erase(shapes.begin() + selectedIndex);
