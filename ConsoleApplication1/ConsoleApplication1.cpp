@@ -96,7 +96,7 @@ public:
         setlinecolor(YELLOW);
         fillrectangle(left, top, right, bottom);
 
-        settextstyle(24, 0, _T("Consolas"));
+        settextstyle(24, 0, _T("Arial"));
         settextcolor(WHITE);
         outtextxy((left + right) / 2 - 5 * sizeof(text), top + 13, text);
         setlinecolor(WHITE);
@@ -636,7 +636,7 @@ void DrawAllShapes() {
 
         // 显示信息
         std::wstring info = shapes[selectedIndex]->getInfo();
-        settextstyle(18, 0, _T("Consolas")); // 设置字体样式
+        settextstyle(18, 0, _T("Arial")); // 设置字体样式
         settextcolor(YELLOW);
         //outtextxy(bbox.right - 200, bbox.bottom + 10, info.c_str()); // 在外框右下角显示信息
         int y = bbox.bottom + 10; // 初始y坐标
@@ -648,6 +648,25 @@ void DrawAllShapes() {
             outtextxy(bbox.left, y, info.substr(pos, next_pos - pos).c_str());
             y += 20; // 调整y坐标以适应下一行
             pos = next_pos + 1;
+        }
+
+        for (const auto& shape : shapes) {
+            // 如果图形被选中
+            if (selectedIndex != -1 && shape.get() == shapes[selectedIndex].get()) {
+                // 计算层级信息的字符串
+                std::wstring layerInfo = L"层级: " + std::to_wstring(selectedIndex);
+
+                // 设置字体和颜色
+                settextstyle(18, 0, _T("Arial")); // 或者选择合适的字体大小和样式
+                settextcolor(YELLOW); // 或者选择合适的颜色
+
+                // 计算位置
+                int posX = bbox.left; // 距离图形右边界5个单位
+                int posY = bbox.top-30; // 距离图形顶部5个单位
+
+                // 输出层级信息
+                outtextxy(posX, posY, layerInfo.c_str());
+            }
         }
     }
 
