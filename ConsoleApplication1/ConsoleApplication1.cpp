@@ -499,6 +499,18 @@ int main() {
                     DrawAllShapes();
                 }
             }
+            if (selectMode && isDragging == 0) {
+                for (size_t i = 0; i < shapes.size(); ++i) {
+                    RECT bbox = shapes[i]->getBoundingBox();
+                    if (pt.x >= bbox.left && pt.x <= bbox.right &&
+                        pt.y >= bbox.top && pt.y <= bbox.bottom) {
+                        selectedIndex = static_cast<int>(i);
+                        isDragging = true;
+                        lastMousePos = pt;
+                        break;
+                    }
+                }
+            }
 
             if (drawCircleMode) {
                 // 左键按下，开始绘制圆
