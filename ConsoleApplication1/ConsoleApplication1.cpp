@@ -20,7 +20,7 @@
 #define layerEditMode layerEditButton.isPressed
 #define modifyLineWidthMode modifyLineWidthButton.isPressed
 
-#define canBeSelected (selectMode || zoomMode || layerEditMode || modifyLineWidthMode)
+#define canBeSelected (selectMode || zoomMode || layerEditMode || modifyLineWidthMode)//
 
 
 
