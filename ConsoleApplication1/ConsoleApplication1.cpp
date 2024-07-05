@@ -907,7 +907,7 @@ int main() {
     setbkmode(TRANSPARENT);
     cleardevice();
     drawButton();
-    if (OPEN_TIPS) { hintManager.updateHints({ 0, 0 }, "绘图", ""); hintManager.displayHints(); }
+    if (OPEN_TIPS) { hintManager.updateHints({ 0, 0 }, "绘圆", "左键确定圆心，拖拽确定半径"); hintManager.displayHints(); }
     drawCircleButton.press();
     WhiteButton.press();
     while (true) {
