@@ -729,7 +729,7 @@ bool isDrawingRect = false;
 bool isDrawingZhexian = false;
 bool isDrawingDuo = false;
 bool isDrawingTuoyuan = false;
-bool  isRDraging = false;
+bool isRDraging = false;
 POINT startPoint;
 POINT endPoint;
 bool isDragging = false;
@@ -791,7 +791,8 @@ void DrawAllShapes() {
             // 如果图形被选中
             if (selectedIndex != -1 && shape.get() == shapes[selectedIndex].get()) {
                 // 计算层级信息的字符串
-                std::wstring layerInfo = L"层级: " + std::to_wstring(selectedIndex);
+				std::wstring layerInfo = L"层级: " + std::to_wstring(selectedIndex);
+				std::wstring lineInfo = L"线宽: " + std::to_wstring(shape->lineWidth) + L"  线型: " + std::to_wstring(shape->lineStyle);
 
                 // 设置字体和颜色
                 settextstyle(18, 0, _T("Arial")); // 或者选择合适的字体大小和样式
@@ -803,6 +804,10 @@ void DrawAllShapes() {
 
                 // 输出层级信息
                 outtextxy(posX, posY, layerInfo.c_str());
+
+                posX = bbox.right-100; // 距离图形右边界5个单位
+                posY = bbox.top - 30; // 距离图形顶部5个单位
+                outtextxy(posX, posY, lineInfo.c_str());
             }
         }
     }
@@ -845,14 +850,9 @@ void pressColourButtom(Button* targetButton) {
 std::string convertTCharToString(TCHAR* tcharStr)
 {
     std::string result;
-#if defined(_UNICODE) || defined(UNICODE)
     // 如果项目使用Unicode，需要从宽字符字符串转换
     std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
     result = myconv.to_bytes(tcharStr);
-#else
-    // 如果项目不使用Unicode，可以直接转换
-    result = tcharStr;
-#endif
     return result;
 }
 
