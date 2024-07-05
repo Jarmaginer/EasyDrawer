@@ -455,11 +455,7 @@ public:
 		return ss.str();
 	}
     void changePoints(int x, int y) {
-        if ( (x- topLeft.x)* (x - topLeft.x )+ (y - topLeft.y) * (y - topLeft.y)  < (x-bottomRight.x) * (x - bottomRight.x)|| (x - topLeft.x) * (x - topLeft.x) + (y - topLeft.y) * (y - topLeft.y) < (y - bottomRight.x) * (y - bottomRight.x)) {
-            topLeft.x = x;
-            topLeft.y = y;
-        }
-        else if ((x - bottomRight.x) * (x - bottomRight.x) + (y - bottomRight.y) * (y - bottomRight.y) < (x - topLeft.x) * (x - topLeft.x)|| (x - topLeft.x) * (x - topLeft.x) + (y - topLeft.y) * (y - topLeft.y) < (y - topLeft.y) * (y - topLeft.y)) {
+        {
             bottomRight.x = x;
             bottomRight.y = y;
         }
@@ -547,6 +543,27 @@ public:
         }
 		return ss.str();
 	}
+    void changePoints(int x, int y) {
+        int index = 0,dis = 1000000;
+        for (int i = 0; i < points.size(); i++) {
+            POINT& it = points[i];
+            if ((x - it.x) * (x - it.x) + (y - it.y) * (y - it.y) < dis) {
+
+                dis = (x - it.x) * (x - it.x) + (y - it.y) * (y - it.y);
+                index = i;
+
+            }
+
+            /*if ((x - it.x) * (x - it.x) + (y - it.y) * (y - it.y) <= 1000) {
+
+                it.x = x;
+                it.y = y;
+                break;
+            }*/
+        }
+        points[index].x = x;
+        points[index].y = y;
+    }
 private:
     std::vector<POINT> points;
 };
@@ -599,7 +616,12 @@ public:
         }
 		return ss.str();
 	}
-
+    void changePoints(int x, int y) {
+        {
+            bottomRight.x = x;
+            bottomRight.y = y;
+        }
+    }
 private:
     POINT topLeft;
     POINT bottomRight;
@@ -657,6 +679,27 @@ public:
             pt.x = static_cast<int>(zoomCenter.x + dx * factor);
             pt.y = static_cast<int>(zoomCenter.y + dy * factor);
         }
+    }
+    void changePoints(int x, int y) {
+        int index = 0, dis = 1000000;
+        for (int i = 0; i < points.size(); i++) {
+            POINT& it = points[i];
+            if ((x - it.x) * (x - it.x) + (y - it.y) * (y - it.y) < dis) {
+
+                dis = (x - it.x) * (x - it.x) + (y - it.y) * (y - it.y);
+                index = i;
+
+            }
+
+            /*if ((x - it.x) * (x - it.x) + (y - it.y) * (y - it.y) <= 1000) {
+
+                it.x = x;
+                it.y = y;
+                break;
+            }*/
+        }
+        points[index].x = x;
+        points[index].y = y;
     }
     std::shared_ptr<Shape> clone() const override {
         return std::make_shared<Duo>(*this);
