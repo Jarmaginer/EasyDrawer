@@ -457,7 +457,7 @@ public:
         ss << L" 线条颜色: " << color;
         ss << L" 填充状态: " << (int)is_fill;
         ss << L" 填充颜色: " << fillcolor;
-        ss << L" 线宽: " << lineWidth << L" 线型= " << lineStyle;
+        ss << L" 线宽: " << lineWidth << L" 线型: " << lineStyle;
         return wstring2string(ss.str());
     }
 
@@ -520,7 +520,7 @@ public:
         ss << L" 线条颜色: " << color;
         ss << L" 填充状态: " << (int)is_fill;
         ss << L" 填充颜色: " << fillcolor;
-        ss << L" 线宽: " << lineWidth << L" 线型= " << lineStyle;
+        ss << L" 线宽: " << lineWidth << L" 线型: " << lineStyle;
         return wstring2string(ss.str());
     }
     RECT getBoundingBox() const override {
@@ -601,13 +601,16 @@ public:
     std::string generateLabel() const {
         std::wstringstream ss;
         ss << L"Zhexian";
+        ss << L" 点数: " << points.size();
+        ss << L" 点集 {";
         for (const auto& pt : points) {
             ss << L" (" << pt.x << L"," << pt.y << L")";
         }
+        ss << L"}";
         ss << L" 线条颜色: " << color;
         ss << L" 填充状态: " << (int)is_fill;
         ss << L" 填充颜色: " << fillcolor;
-        ss << L" 线宽: " << lineWidth << L" 线型= " << lineStyle;
+        ss << L" 线宽: " << lineWidth << L" 线型: " << lineStyle;
         return wstring2string(ss.str());
     }
     RECT getBoundingBox() const override {
@@ -705,7 +708,7 @@ public:
 		ss << L" 线条颜色: " << color;
 		ss << L" 填充状态: " << (int)is_fill;
 		ss << L" 填充颜色: " << fillcolor;
-		ss << L" 线宽: " << lineWidth << L" 线型= " << lineStyle;
+		ss << L" 线宽: " << lineWidth << L" 线型: " << lineStyle;
         return wstring2string(ss.str());
 	}
     RECT getBoundingBox() const override {
@@ -781,13 +784,16 @@ public:
     std::string generateLabel() const {
         std::wstringstream ss;
 		ss << L"Duo";
+		ss << L" 点数: " << points.size();
+        ss << L" 点集 {";
 		for (const auto& pt : points) {
 			ss << L" (" << pt.x << L"," << pt.y << L")";
 		}
+		ss << L"}";
 		ss << L" 线条颜色: " << color;
 		ss << L" 填充状态: " << (int)is_fill;
 		ss << L" 填充颜色: " << fillcolor;
-		ss << L" 线宽: " << lineWidth << L" 线型= " << lineStyle;
+		ss << L" 线宽: " << lineWidth << L" 线型: " << lineStyle;
         return wstring2string(ss.str());
 	}
     RECT getBoundingBox() const override {
