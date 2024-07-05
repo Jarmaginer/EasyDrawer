@@ -286,6 +286,9 @@ public:
     virtual void setFillColour(int co) {
         this->fillcolor = co;
     }
+    virtual void changePoints(int x, int y) {
+
+    }
 };
 
 class Image : public Shape {
@@ -451,6 +454,16 @@ public:
         }
 		return ss.str();
 	}
+    void changePoints(int x, int y) {
+        if ( (x- topLeft.x)* (x - topLeft.x )+ (y - topLeft.y) * (y - topLeft.y)  < (x-bottomRight.x) * (x - bottomRight.x)|| (x - topLeft.x) * (x - topLeft.x) + (y - topLeft.y) * (y - topLeft.y) < (y - bottomRight.x) * (y - bottomRight.x)) {
+            topLeft.x = x;
+            topLeft.y = y;
+        }
+        else if ((x - bottomRight.x) * (x - bottomRight.x) + (y - bottomRight.y) * (y - bottomRight.y) < (x - topLeft.x) * (x - topLeft.x)|| (x - topLeft.x) * (x - topLeft.x) + (y - topLeft.y) * (y - topLeft.y) < (y - topLeft.y) * (y - topLeft.y)) {
+            bottomRight.x = x;
+            bottomRight.y = y;
+        }
+    }
 private:
     POINT topLeft;
     POINT bottomRight;
@@ -673,6 +686,7 @@ bool isDrawingRect = false;
 bool isDrawingZhexian = false;
 bool isDrawingDuo = false;
 bool isDrawingTuoyuan = false;
+bool  isRDraging = false;
 POINT startPoint;
 POINT endPoint;
 bool isDragging = false;
@@ -1115,6 +1129,10 @@ int main() {
                 isDrawingDuo = false;
                 DrawAllShapes();
             }
+            else if (selectMode && selectedIndex != -1) {
+                
+                    isRDraging = true;
+            }
             break;
 
         case WM_MOUSEMOVE:
@@ -1137,6 +1155,10 @@ int main() {
                 int dy = pt.y - lastMousePos.y;
                 shapes[selectedIndex]->move(dx, dy);
                 lastMousePos = pt;
+                DrawAllShapes();
+            }
+            else if (isRDraging && selectedIndex != -1) {
+                shapes[selectedIndex]->changePoints(msg.x, msg.y);
                 DrawAllShapes();
             }
             break;
@@ -1257,7 +1279,15 @@ int main() {
                 DrawAllShapes();
             }
             break;
+        case WM_RBUTTONUP:
+            //右键弹起
+            if(isRDraging && selectedIndex != -1) {
+                isRDraging = false;
+            }
+            break;
         }
+        
+
     }
 
     closegraph();
