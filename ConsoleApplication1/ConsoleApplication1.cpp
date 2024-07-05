@@ -21,6 +21,7 @@
 #define modifyLineWidthMode modifyLineWidthButton.isPressed
 
 #define canBeSelected (selectMode || zoomMode || layerEditMode || modifyLineWidthMode)//
+//test1
 
 
 
