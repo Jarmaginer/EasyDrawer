@@ -21,7 +21,7 @@
 #define modifyLineWidthMode modifyLineWidthButton.isPressed
 
 #define canBeSelected (selectMode || zoomMode || layerEditMode || modifyLineWidthMode)
-
+    
 
 static int COLOR = WHITE;
 int selectedIndex = -1;
@@ -166,7 +166,7 @@ Button* buttons[] = {
     &drawTuoYuanButton,
     &selectShapeButton,
     &zoomButton,
-	&layerEditButton,
+    &layerEditButton,
     &modifyLineWidthButton
 };
 
@@ -1082,7 +1082,7 @@ int main() {
                     currentZhexian->addPoint(pt);
                 }
                 else if (isDrawingZhexian && currentZhexian) {
-                    currentZhexian->addPoint(pt);
+                    //currentZhexian->addPoint(pt);
                     DrawAllShapes();
                 }
             }
@@ -1094,7 +1094,7 @@ int main() {
                     currentDuo->addPoint(pt);
                 }
                 else if (isDrawingDuo && currentDuo) {
-                    currentDuo->addPoint(pt);
+                    //currentDuo->addPoint(pt);
                     DrawAllShapes();
                 }
             }
