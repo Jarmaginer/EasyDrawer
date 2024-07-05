@@ -324,6 +324,7 @@ public:
     virtual std::wstring getInfo() const = 0;
 
     void setFill(bool fill) {
+		this->fillcolor = COLOR;
         this->is_fill = fill;
     }
     virtual void setFillColour(int co) {
@@ -781,15 +782,16 @@ HintManager hintManager;
 
 // 绘制所有的图形
 void DrawAllShapes() {
+
     BeginBatchDraw();
     cleardevice();
 	if (OPEN_TIPS) hintManager.displayHints();
     drawButton();
     // 绘制所有形状
+
     for (const auto& shape : shapes) {
         shape->draw();
     }
-
     // 绘制当前绘制中的形状
     if (isDrawingCircle) {
         int radius = static_cast<int>(std::sqrt(std::pow(endPoint.x - startPoint.x, 2) + std::pow(endPoint.y - startPoint.y, 2)));
@@ -858,6 +860,7 @@ void DrawAllShapes() {
     }
 
     // 绘制选中的形状的外框
+
     EndBatchDraw();
 }
 
@@ -1388,6 +1391,7 @@ int main() {
                 isRDraging = false;
             }
             break;
+
         }
         
 
