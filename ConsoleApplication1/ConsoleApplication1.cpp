@@ -20,10 +20,9 @@
 #define layerEditMode layerEditButton.isPressed
 #define modifyLineWidthMode modifyLineWidthButton.isPressed
 
-#define canBeSelected (selectMode || zoomMode || layerEditMode || modifyLineWidthMode)//
-//test1
+#define canBeSelected (selectMode || zoomMode || layerEditMode || modifyLineWidthMode)
 
-
+//test2
 
 static int COLOR = WHITE;
 int selectedIndex = -1;
