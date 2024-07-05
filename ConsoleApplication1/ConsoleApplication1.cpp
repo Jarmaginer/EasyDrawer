@@ -22,7 +22,6 @@
 
 #define canBeSelected (selectMode || zoomMode || layerEditMode || modifyLineWidthMode)
 
-//test2
 
 static int COLOR = WHITE;
 int selectedIndex = -1;
