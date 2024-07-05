@@ -10,6 +10,12 @@
 #include <sstream>
 #include <algorithm>
 
+#include <CommCtrl.h>
+#include <CommDlg.h>
+#include <Shlobj.h>
+#include <tchar.h>
+#include <fstream>
+
 #define drawCircleMode drawCircleButton.isPressed
 #define drawRectMode drawRectButton.isPressed
 #define drawZhexianMode drawZhexianButton.isPressed
@@ -145,7 +151,7 @@ Button changeLineStyleButton(1200, 0, 1300, 50, _T("改变线型"));
 Button modifyLineWidthButton(1300, 0, 1400, 50, _T("修改线宽"));
 Button insertImageButton(1400, 0, 1500, 50, _T("置入图片"));
 Button layerEditButton(1500, 0, 1600, 50, _T("图层编辑"));
-
+Button saveButton(1500, 50, 1600, 100, _T("保存工程"));
 
 Button WhiteButton(0, 0, 25, 25, _T(""));
 Button RedButton(25, 0, 50, 25, _T(""));
@@ -212,6 +218,21 @@ LPCWSTR stringToLPCWSTR(std::string str)
 }
 
 
+std::string wstring2string(std::wstring wstr)
+{
+    std::string result;
+    //获取缓冲区大小，并申请空间，缓冲区大小事按字节计算的  
+    int len = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), wstr.size(), NULL, 0, NULL, NULL);
+    char* buffer = new char[len + 1];
+    //宽字节编码转换成多字节编码  
+    WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), wstr.size(), buffer, len, NULL, NULL);
+    buffer[len] = '\0';
+    //删除缓冲区并返回值  
+    result.append(buffer);
+    delete[] buffer;
+    return result;
+}
+
 void drawButton() {
     BeginBatchDraw();
     drawCircleButton.draw();
@@ -229,6 +250,7 @@ void drawButton() {
 
 	changeLineStyleButton.draw();
     modifyLineWidthButton.draw();
+	saveButton.draw();
 
     BlackButton.drawColorButtom(BLACK);
     RedButton.drawColorButtom(RED);
@@ -248,6 +270,7 @@ void drawButton() {
     WhiteButton.drawColorButtom(WHITE);
     EndBatchDraw();
 }
+
 void DrawAllShapes();
 
 class HintManager {
@@ -294,6 +317,7 @@ public:
     virtual void move(int dx, int dy) = 0;
     virtual ~Shape() {}
     virtual std::shared_ptr<Shape> clone() const = 0;
+    virtual std::string generateLabel() const = 0;
     int color = COLOR;
     int fillcolor = COLOR;
     bool is_fill = false;
@@ -355,6 +379,15 @@ public:
     void draw() const override {
         putimage(topLeft.x, topLeft.y, width , height ,&m_image,0,0);
     }
+    std::string generateLabel() const {
+        std::wstringstream ss;
+		ss << L"Image";
+		ss << L" 左上点: (" << topLeft.x << L"," << topLeft.y << L")";
+		ss << L" 宽度: " << width;
+		ss << L" 高度: " << height;
+		ss << L" 文件名: " << std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
+        return wstring2string(ss.str());
+	}
 
     // 获取边界框
     RECT getBoundingBox() const override {
@@ -416,6 +449,18 @@ public:
 		setlinestyle(PS_SOLID, 1);
 
     }
+    std::string generateLabel() const {
+        std::wstringstream ss;
+        ss << L"Circle";
+        ss << L" 圆心: (" << center.x << L"," << center.y << L")";
+        ss << L" 半径: " << radius;
+        ss << L" 线条颜色: " << color;
+        ss << L" 填充状态: " << (int)is_fill;
+        ss << L" 填充颜色: " << fillcolor;
+        ss << L" 线宽: " << lineWidth << L" 线型= " << lineStyle;
+        return wstring2string(ss.str());
+    }
+
     RECT getBoundingBox() const override {
         return { center.x - radius, center.y - radius, center.x + radius, center.y + radius };
     }
@@ -466,6 +511,17 @@ public:
         }
         setlinecolor(WHITE);
 		setlinestyle(PS_SOLID, 1);
+    }
+    std::string generateLabel() const {
+        std::wstringstream ss;
+        ss << L"Rect";
+        ss << L" 左上点: (" << topLeft.x << L"," << topLeft.y << L")";
+        ss << L" 右下点: (" << bottomRight.x << L"," << bottomRight.y << L")";
+        ss << L" 线条颜色: " << color;
+        ss << L" 填充状态: " << (int)is_fill;
+        ss << L" 填充颜色: " << fillcolor;
+        ss << L" 线宽: " << lineWidth << L" 线型= " << lineStyle;
+        return wstring2string(ss.str());
     }
     RECT getBoundingBox() const override {
         return { topLeft.x, topLeft.y, bottomRight.x, bottomRight.y };
@@ -541,6 +597,18 @@ public:
         }
         setlinecolor(WHITE);
 		setlinestyle(PS_SOLID, 1);
+    }
+    std::string generateLabel() const {
+        std::wstringstream ss;
+        ss << L"Zhexian";
+        for (const auto& pt : points) {
+            ss << L" (" << pt.x << L"," << pt.y << L")";
+        }
+        ss << L" 线条颜色: " << color;
+        ss << L" 填充状态: " << (int)is_fill;
+        ss << L" 填充颜色: " << fillcolor;
+        ss << L" 线宽: " << lineWidth << L" 线型= " << lineStyle;
+        return wstring2string(ss.str());
     }
     RECT getBoundingBox() const override {
         if (points.empty()) return { 0, 0, 0, 0 };
@@ -629,6 +697,17 @@ public:
         setlinecolor(WHITE);
         setlinestyle(PS_SOLID, 1);
     }
+    std::string generateLabel() const {
+        std::wstringstream ss;
+		ss << L"Tuoyuan";
+		ss << L" 左上点: (" << topLeft.x << L"," << topLeft.y << L")";
+		ss << L" 右下点: (" << bottomRight.x << L"," << bottomRight.y << L")";
+		ss << L" 线条颜色: " << color;
+		ss << L" 填充状态: " << (int)is_fill;
+		ss << L" 填充颜色: " << fillcolor;
+		ss << L" 线宽: " << lineWidth << L" 线型= " << lineStyle;
+        return wstring2string(ss.str());
+	}
     RECT getBoundingBox() const override {
         return { topLeft.x, topLeft.y, bottomRight.x, bottomRight.y };
     }
@@ -699,6 +778,18 @@ public:
         setlinecolor(WHITE);
 		setlinestyle(PS_SOLID, 1);
     }
+    std::string generateLabel() const {
+        std::wstringstream ss;
+		ss << L"Duo";
+		for (const auto& pt : points) {
+			ss << L" (" << pt.x << L"," << pt.y << L")";
+		}
+		ss << L" 线条颜色: " << color;
+		ss << L" 填充状态: " << (int)is_fill;
+		ss << L" 填充颜色: " << fillcolor;
+		ss << L" 线宽: " << lineWidth << L" 线型= " << lineStyle;
+        return wstring2string(ss.str());
+	}
     RECT getBoundingBox() const override {
         if (points.empty()) return { 0, 0, 0, 0 };
         int minX = points[0].x, maxX = points[0].x, minY = points[0].y, maxY = points[0].y;
@@ -904,6 +995,45 @@ std::string convertTCharToString(TCHAR* tcharStr)
     return result;
 }
 
+void TcharToChar(const TCHAR* tchar, char* _char) {
+    int iLength;
+    iLength = WideCharToMultiByte(CP_ACP, 0, tchar, -1, NULL, 0, NULL, NULL);
+    WideCharToMultiByte(CP_ACP, 0, tchar, -1, _char, iLength, NULL, NULL);
+}
+
+bool saveProjectWithDialog(const std::vector<std::shared_ptr<Shape>>& shapes) {
+    OPENFILENAME ofn;
+    TCHAR szFileName[MAX_PATH] = { 0 };
+
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = NULL;
+    ofn.lpstrFile = szFileName;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.Flags = OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY | OFN_PATHMUSTEXIST | OFN_EXPLORER | OFN_ENABLESIZING;
+    ofn.lpstrFilter = _T("Text Files (*.txt)\0*.txt\0All Files (*.*)\0*.*\0");
+    ofn.nFilterIndex = 1;
+    ofn.lpstrFileTitle = NULL;
+    ofn.nMaxFileTitle = 0;
+    ofn.lpstrInitialDir = _T(".");
+
+    if (GetSaveFileName(&ofn)) {
+        std::ofstream file(ofn.lpstrFile);
+        if (!file) {
+            return false;
+        }
+
+        for (const auto& shape : shapes) {
+            file << (shape->generateLabel()) << "\n";
+        }
+
+        return true;
+        file.close();
+    }
+
+    return false;
+}
+
 int main() {
     // 初始化图形窗口
     initgraph(1600, 900);
@@ -955,6 +1085,15 @@ int main() {
                         MessageBox(hnd, _T("无法加载图片"), _T("错误"), MB_OK);
                     }
                 }
+            }
+            else if (saveButton.isInside(msg.x,msg.y)) {
+                if (saveProjectWithDialog(shapes)) {
+					MessageBox(GetHWnd(), _T("保存成功"), _T("提示"), MB_OK);
+                }
+                else {
+					MessageBox(GetHWnd(), _T("保存失败"), _T("错误"), MB_OK);
+                }
+
             }
 			else if (modifyLineWidthButton.isInside(msg.x, msg.y))
             {
