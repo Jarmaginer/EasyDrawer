@@ -22,6 +22,12 @@
 
 #define canBeSelected (selectMode || zoomMode || layerEditMode || modifyLineWidthMode)
     
+//全局设定
+int THEME = 0; // 0为黑色主题，1为白色主题
+bool FRESH_WHILE_MOVEMOUSE = false; // 鼠标移动时是否刷新画布
+bool OPEN_TIPS = true; // 是否打开提示
+int SCREEN_WIDTH = 1600;
+int SCREEN_HEIGHT = 900;
 
 static int COLOR = WHITE;
 int selectedIndex = -1;
@@ -242,6 +248,43 @@ void drawButton() {
     WhiteButton.drawColorButtom(WHITE);
     EndBatchDraw();
 }
+void DrawAllShapes();
+
+class HintManager {
+public:
+    void updateHints(const POINT& mousePos, const std::string& mode, std::string tips) {
+        this->mousePos = mousePos;
+        this->mode = mode;
+        this->tips = tips;
+        if(FRESH_WHILE_MOVEMOUSE)
+        {
+            DrawAllShapes();
+        }
+
+    }
+
+    void displayHints() const {
+        settextstyle(16, 0, _T("Arial"));
+        settextcolor(LIGHTGRAY);
+        outtextxy(0, 60, stringToLPCWSTR(("鼠标位置: (" + std::to_string(mousePos.x) + ", " + std::to_string(mousePos.y) + ")")));
+        outtextxy(0, 80, stringToLPCWSTR(("当前模式: " + mode)));
+        outtextxy(0, 100, stringToLPCWSTR("提示: "+tips));
+
+    }
+	void updatePt(POINT pt) {
+		this->mousePos = pt;
+        if (FRESH_WHILE_MOVEMOUSE)
+        {
+            DrawAllShapes();
+        }
+	}
+
+private:
+    POINT mousePos;
+    std::string mode;
+    std::string tips;
+};
+
 
 
 class Shape {
@@ -734,11 +777,13 @@ POINT startPoint;
 POINT endPoint;
 bool isDragging = false;
 POINT lastMousePos;
+HintManager hintManager;
 
 // 绘制所有的图形
 void DrawAllShapes() {
     BeginBatchDraw();
     cleardevice();
+	if (OPEN_TIPS) hintManager.displayHints();
     drawButton();
     // 绘制所有形状
     for (const auto& shape : shapes) {
@@ -862,14 +907,17 @@ int main() {
     setbkmode(TRANSPARENT);
     cleardevice();
     drawButton();
+    if (OPEN_TIPS) { hintManager.updateHints({ 0, 0 }, "绘图", ""); hintManager.displayHints(); }
     drawCircleButton.press();
     WhiteButton.press();
     while (true) {
         // 获取鼠标消息
+
         MOUSEMSG msg = GetMouseMsg();
         drawButton();
         POINT pt = { msg.x, msg.y };
 
+		if (OPEN_TIPS) hintManager.updatePt(pt);
         if (!canBeSelected) { selectedIndex = -1; }
 
         switch (msg.uMsg) {
@@ -908,9 +956,11 @@ int main() {
 			else if (modifyLineWidthButton.isInside(msg.x, msg.y))
             {
 				pressButtom(&modifyLineWidthButton);
+				if (OPEN_TIPS) hintManager.updateHints(pt, "修改线宽", "滚轮上下滚动增减线宽");
 				continue;
 			}
             else if (layerEditButton.isInside(msg.x, msg.y)) {
+				if (OPEN_TIPS) hintManager.updateHints(pt, "图层编辑", "滚轮上下滚动改变层级");
                 pressButtom(&layerEditButton);
                 continue;
             }
@@ -1012,34 +1062,42 @@ int main() {
                 continue;
             }
             else if (drawCircleButton.isInside(msg.x, msg.y)) {
+				if (OPEN_TIPS) hintManager.updateHints(pt, "绘制圆", "左键点击确定圆心，点击左键确定半径");
                 pressButtom(&drawCircleButton);
                 continue;
             }
             else if (drawRectButton.isInside(msg.x, msg.y)) {
+				if (OPEN_TIPS) hintManager.updateHints(pt, "绘制矩形", "左键点击确定左上角，点击左键确定右下角");
                 pressButtom(&drawRectButton);
                 continue;
             }
             else if (drawZhexianButton.isInside(msg.x, msg.y)) {
+				if (OPEN_TIPS) hintManager.updateHints(pt, "绘制折线", "左键点击确定第一个点，点击左键确定下一个点，右键结束");
                 pressButtom(&drawZhexianButton);
                 continue;
             }
             else if (drawDuoButton.isInside(msg.x, msg.y)) {
+				if (OPEN_TIPS) hintManager.updateHints(pt, "绘制多边形", "左键点击确定第一个点，点击左键确定下一个点，右键结束");
                 pressButtom(&drawDuoButton);
                 continue;
             }
             else if (selectShapeButton.isInside(msg.x, msg.y)) {
+				if (OPEN_TIPS) hintManager.updateHints(pt, "选择图形", "左键点击选择图形，拖动移动，滚轮选择图形，右键修改图形参数");
                 pressButtom(&selectShapeButton);
                 continue;
             }
             else if (drawTuoYuanButton.isInside(msg.x, msg.y)) {
+				if (OPEN_TIPS) hintManager.updateHints(pt, "绘制椭圆", "左键点击确定左上角，拖动鼠标确定右下角");
                 pressButtom(&drawTuoYuanButton);
                 continue;
             }
             else if (zoomButton.isInside(msg.x, msg.y)) {
+				if (OPEN_TIPS) hintManager.updateHints(pt, "缩放", "滚轮上下滚动缩放图形");
 				pressButtom(&zoomButton);
                 continue;
             }
             else if (copyButton.isInside(msg.x, msg.y)) {
+				if (OPEN_TIPS) hintManager.updateHints(pt, "复制", "复制选中的图形");
                 if (selectedIndex == -1) {
                     HWND hnd = GetHWnd();
 
@@ -1060,6 +1118,7 @@ int main() {
                 }
             }
             else if (deleteButton.isInside(msg.x, msg.y)) {
+				if (OPEN_TIPS) hintManager.updateHints(pt, "删除", "删除选中的图形");
                 if (selectedIndex == -1) {
                     HWND hnd = GetHWnd();
 
@@ -1076,6 +1135,7 @@ int main() {
                 }
             }
             else if (fillButton.isInside(msg.x, msg.y)) {
+				if (OPEN_TIPS) hintManager.updateHints(pt, "填充", "填充选中的图形");
 				if (selectedIndex != -1) {
 					shapes[selectedIndex]->setFill(!shapes[selectedIndex]->is_fill);
 					shapes[selectedIndex]->setFillColour(COLOR);
