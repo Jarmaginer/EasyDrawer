@@ -266,9 +266,9 @@ public:
     void displayHints() const {
         settextstyle(16, 0, _T("Arial"));
         settextcolor(LIGHTGRAY);
-        outtextxy(0, 60, stringToLPCWSTR(("鼠标位置: (" + std::to_string(mousePos.x) + ", " + std::to_string(mousePos.y) + ")")));
-        outtextxy(0, 80, stringToLPCWSTR(("当前模式: " + mode)));
-        outtextxy(0, 100, stringToLPCWSTR("提示: "+tips));
+        outtextxy(5, SCREEN_HEIGHT-60, stringToLPCWSTR(("点击位置: (" + std::to_string(mousePos.x) + ", " + std::to_string(mousePos.y) + ")")));
+        outtextxy(5, SCREEN_HEIGHT - 40, stringToLPCWSTR(("模式: " + mode)));
+        outtextxy(5, SCREEN_HEIGHT-20, stringToLPCWSTR("提示: "+tips));
 
     }
 	void updatePt(POINT pt) {
@@ -1067,7 +1067,7 @@ int main() {
                 continue;
             }
             else if (drawRectButton.isInside(msg.x, msg.y)) {
-				if (OPEN_TIPS) hintManager.updateHints(pt, "绘制矩形", "左键点击确定左上角，点击左键确定右下角");
+				if (OPEN_TIPS) hintManager.updateHints(pt, "绘制矩形", "拖拽画矩形");
                 pressButtom(&drawRectButton);
                 continue;
             }
@@ -1087,7 +1087,7 @@ int main() {
                 continue;
             }
             else if (drawTuoYuanButton.isInside(msg.x, msg.y)) {
-				if (OPEN_TIPS) hintManager.updateHints(pt, "绘制椭圆", "左键点击确定左上角，拖动鼠标确定右下角");
+				if (OPEN_TIPS) hintManager.updateHints(pt, "绘制椭圆", "拖拽画椭圆");
                 pressButtom(&drawTuoYuanButton);
                 continue;
             }
