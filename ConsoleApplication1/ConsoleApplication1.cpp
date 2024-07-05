@@ -1172,7 +1172,7 @@ int main() {
                 isDrawingDuo = false;
                 DrawAllShapes();
             }
-            else if (selectMode && selectedIndex != -1) {
+            else if (canBeSelected) {
                 
                     isRDraging = true;
             }
