@@ -29,6 +29,7 @@
 #define zoomMode zoomButton.isPressed
 #define layerEditMode layereditButton.isPressed
 #define modifyLineWidthMode modifyLineWidthButton.isPressed
+#define settingsMode settingsButton.isPressed
 
 #define canBeSelected (selectMode || zoomMode || layerEditMode || modifyLineWidthMode)
 
@@ -36,7 +37,9 @@
 int THEME = 0; // 0为黑色主题，1为白色主题
 bool FRESH_WHILE_MOVEMOUSE = false; // 鼠标移动时是否刷新画布
 bool OPEN_TIPS = true; // 是否打开提示
-bool OPEN_DOUBLE_CLICK = false; // 是否双击
+bool OPEN_DOUBLE_CLICK = true; // 是否双击
+bool OPEN_BATCH_DRAW = true;
+
 int SCREEN_WIDTH = 1600;
 int SCREEN_HEIGHT = 900;
 
@@ -107,6 +110,9 @@ class Button {
 public:
     Button(int left, int top, int right, int bottom, const TCHAR* text)
         : left(left), top(top), right(right), bottom(bottom), text(text), isPressed(false) {}
+	//下面这个构造函数是为了实现按钮的回调函数 绑定事件对象
+    Button(int left, int top, int right, int bottom, const TCHAR* text, bool (*callback)(bool))
+        : left(left), top(top), right(right), bottom(bottom), text(text), isPressed(false), callback(callback) {}
     void drawColorButtom(int color)
     {
         if (isPressed) {
@@ -191,12 +197,16 @@ public:
         isPressed = false;
     }
     bool isPressed;
+    bool (*callback)(bool);
 private:
     int left, top, right, bottom;
     const WCHAR* text;
     int color;
 
 };
+
+void displaySettings();
+
 Button drawCircleButton(200, 0, 300, 50, _T("圆"));
 
 Button drawRectButton(300, 0, 400, 50, _T("矩形"));
@@ -212,10 +222,11 @@ Button changeLineStyleButton(1200, 0, 1300, 50, _T("改变线型"));
 Button modifyLineWidthButton(1300, 0, 1400, 50, _T("修改线宽"));
 Button insertImageButton(1400, 0, 1500, 50, _T("置入图片"));
 Button layereditButton(1500, 0, 1600, 50, _T("图层编辑"));
-Button theme(1500, 50, 1600, 100, L"画板颜色");
+Button clearButton(1500, 50, 1600, 100, L"清空画布");
 Button saveButton(1500, 100, 1600, 150, _T("保存工程"));
 Button loadButton(1500, 150, 1600, 200, _T("读取工程"));
 Button insertButton(1500, 200, 1600, 250, _T("置入对象"));
+Button settingsButton(1500,850,1600,900, _T("设置"));
 
 Button copyButton(-100, -100, -25, -25, _T("拷贝"));
 
@@ -235,6 +246,15 @@ Button LightMagentaButton(100, 25, 125, 50, _T(""));
 Button CyanButton(125, 25, 150, 50, _T(""));
 Button YellowButton(150, 25, 175, 50, _T(""));
 Button BlackButton(175, 25, 200, 50, _T(""));
+
+
+Button themeButton(888, 350, 948, 380, _T("切换主题"));
+Button openTips(888, 380, 948, 410, _T("开启提示"));
+Button refreshMouseMove(888, 410, 948, 440, _T("鼠标移动刷新"));
+Button openDoubleClick(888, 440, 948, 470, _T("双击"));
+Button openBatchDraw(888, 470, 948, 500, _T("双缓冲区"));
+
+
 // 定义一个按钮数组，包含所有需要分组的按钮
 Button* buttons[] = {
     &drawCircleButton,
@@ -246,7 +266,7 @@ Button* buttons[] = {
     &zoomButton,
     &layereditButton,
     &modifyLineWidthButton,
-    &theme
+    &settingsButton
 };
 
 Button* colourbuttons[] = {
@@ -268,6 +288,12 @@ Button* colourbuttons[] = {
     &WhiteButton
 
 };
+
+
+
+
+// 切换主题的函数
+
 
 void CopyTextToClipboard(const std::string& text) {
     if (!OpenClipboard(NULL)) {
@@ -331,7 +357,7 @@ std::wstring string2wstring(std::string str)
 
 void drawButton() {
     BeginBatchDraw();
-    theme.draw();
+    clearButton.draw();
     drawCircleButton.draw();
     drawRectButton.draw();
     drawZhexianButton.draw();
@@ -350,6 +376,7 @@ void drawButton() {
     saveButton.draw();
     loadButton.draw();
 	insertButton.draw();
+    settingsButton.draw();
 
     BlackButton.drawColorButtom(BLACK);
     RedButton.drawColorButtom(RED);
@@ -367,11 +394,49 @@ void drawButton() {
     CyanButton.drawColorButtom(CYAN);
     YellowButton.drawColorButtom(YELLOW);
     WhiteButton.drawColorButtom(WHITE);
+
     EndBatchDraw();
 }
 
 void DrawAllShapes();
+void displaySettings() {
+    BeginBatchDraw();
+    settextstyle(30, 0, _T("Arial"));
+    settextcolor(WHITE);
+	setlinecolor(WHITE);
+	!THEME ? setfillcolor(DARKGRAY) : setfillcolor(LIGHTBLUE);
+    //int THEME = 0; // 0为黑色主题，1为白色主题
+    //bool FRESH_WHILE_MOVEMOUSE = false; // 鼠标移动时是否刷新画布
+    //bool OPEN_TIPS = true; // 是否打开提示
+    //bool OPEN_DOUBLE_CLICK = false; // 是否双击
+	!THEME ? fillrectangle(499, 245, 1114, 633) : fillroundrect(499, 245, 1114, 633,30, 30);
+   
+	outtextxy(755, 252, stringToLPCWSTR("设置菜单"));
 
+	outtextxy(532, 352, stringToLPCWSTR("设置画板主题颜色"));
+	outtextxy(892, 352, stringToLPCWSTR((THEME == 0) ? "黑色" : "白色"));
+
+    outtextxy(532, 382, stringToLPCWSTR("提示系统"));
+	outtextxy(892, 382, stringToLPCWSTR(OPEN_TIPS ? "开启" : "关闭"));
+
+    outtextxy(532, 412, stringToLPCWSTR(("鼠标移动时刷新画布")));
+	outtextxy(892, 412, stringToLPCWSTR(FRESH_WHILE_MOVEMOUSE ? "开启" : "关闭"));
+
+	outtextxy(532, 442, stringToLPCWSTR(("捕获鼠标双击事件")));
+	outtextxy(892, 442, stringToLPCWSTR(OPEN_DOUBLE_CLICK ? "开启" : "关闭"));
+
+    outtextxy(532, 472, stringToLPCWSTR(("启用双缓冲区渲染优化")));
+	outtextxy(892, 472, stringToLPCWSTR(OPEN_BATCH_DRAW ? "开启" : "关闭"));
+
+
+
+    //themeButton.draw();
+    //refreshMouseMove.draw();
+    //openTips.draw();
+    //openDoubleClick.draw();
+
+    EndBatchDraw();
+}
 class HintManager {
 public:
     void updateHints(const POINT& mousePos, const std::string& mode, std::string tips) {
@@ -387,7 +452,7 @@ public:
 
     void displayHints() const {
         settextstyle(16, 0, _T("Arial"));
-        settextcolor(LIGHTGRAY);
+        !THEME ? settextcolor(LIGHTGRAY):settextcolor(DARKGRAY);
         outtextxy(5, SCREEN_HEIGHT - 60, stringToLPCWSTR(("点击位置: (" + std::to_string(mousePos.x) + ", " + std::to_string(mousePos.y) + ")")));
         outtextxy(5, SCREEN_HEIGHT - 40, stringToLPCWSTR(("模式: " + mode)));
         outtextxy(5, SCREEN_HEIGHT - 20, stringToLPCWSTR("提示: " + tips));
@@ -1235,7 +1300,7 @@ HintManager hintManager;
 // 绘制所有的图形
 void DrawAllShapes() {
 
-    BeginBatchDraw();
+    if (OPEN_BATCH_DRAW) BeginBatchDraw();
     cleardevice();
     if (OPEN_TIPS) hintManager.displayHints();
     drawButton();
@@ -1315,12 +1380,12 @@ void DrawAllShapes() {
 
     // 绘制选中的形状的外框
 
-    EndBatchDraw();
+    if(OPEN_BATCH_DRAW) EndBatchDraw();
 }
 
 
 // 定义一个函数来更新按钮组状态
-void pressButtom(Button* targetButton) {
+void pressButton(Button* targetButton) {
     for (auto button : buttons) {
         if (button != targetButton) {
             button->release(); // 如果不是目标按钮，释放它
@@ -1329,6 +1394,7 @@ void pressButtom(Button* targetButton) {
             button->press();   // 如果是目标按钮，按下去
         }
     }
+	DrawAllShapes();
 }
 
 void pressColourButtom(Button* targetButton) {
@@ -1458,7 +1524,7 @@ int main() {
 		if (OPEN_DOUBLE_CLICK && msg.uMsg == WM_LBUTTONDBLCLK)
         {
             if (OPEN_TIPS) hintManager.updateHints(pt, "选择图形", "左键点击选择图形，拖动移动，滚轮选择图形，右键修改图形参数");
-            pressButtom(&selectShapeButton);
+            pressButton(&selectShapeButton);
             for (size_t i = 0; i < shapes.size(); ++i) {
                 RECT bbox = shapes[i]->getBoundingBox();
                 if (pt.x >= bbox.left && pt.x <= bbox.right &&
@@ -1472,10 +1538,51 @@ int main() {
             lastMousePos = pt;
             DrawAllShapes();
 		}
+        if (settingsMode)
+        {
+			displaySettings();
+		}
 
         switch (msg.uMsg) {
         
         case WM_LBUTTONDOWN:
+            if (settingsMode) {
+                if (themeButton.isInside(msg.x, msg.y))
+                {
+                    THEME = 1 - THEME;
+                    if (THEME == 1)
+                    {
+                        setbkcolor(WHITE);
+                    }
+                    else
+                    {
+                        setbkcolor(BLACK);
+                    }
+                    DrawAllShapes();
+                }
+                else if (refreshMouseMove.isInside(msg.x, msg.y)) {
+                    FRESH_WHILE_MOVEMOUSE = 1 - FRESH_WHILE_MOVEMOUSE;
+					
+					DrawAllShapes();
+				}
+                else if (openTips.isInside(msg.x, msg.y))
+                {
+                    OPEN_TIPS = 1 - OPEN_TIPS;
+					DrawAllShapes();
+				}
+                else if (openDoubleClick.isInside(msg.x, msg.y))
+                {
+                    OPEN_DOUBLE_CLICK = 1 - OPEN_DOUBLE_CLICK;
+                    OPEN_DOUBLE_CLICK ? initgraph(1600, 900, EX_SHOWCONSOLE | EX_DBLCLKS) : initgraph(1600, 900, EX_SHOWCONSOLE);
+                    setbkmode(TRANSPARENT);
+                    DrawAllShapes();
+                }
+				else if (openBatchDraw.isInside(msg.x, msg.y))
+                {
+					OPEN_BATCH_DRAW = 1 - OPEN_BATCH_DRAW;
+					DrawAllShapes();
+				}
+            }
             if (insertImageButton.isInside(msg.x, msg.y)) {
                 // 打开文件对话框选择图片
                 OPENFILENAME ofn;
@@ -1505,6 +1612,9 @@ int main() {
                         MessageBox(hnd, _T("无法加载图片"), _T("错误"), MB_OK);
                     }
                 }
+            }
+            else if (settingsButton.isInside(msg.x, msg.y)) {
+				pressButton(&settingsButton);
             }
             else if (saveButton.isInside(msg.x, msg.y)) {
                 if (saveProject(shapes)) {
@@ -1575,18 +1685,19 @@ int main() {
             }
             else if (modifyLineWidthButton.isInside(msg.x, msg.y))
             {
-                pressButtom(&modifyLineWidthButton);
+                pressButton(&modifyLineWidthButton);
                 if (OPEN_TIPS) hintManager.updateHints(pt, "修改线宽", "滚轮上下滚动增减线宽");
                 continue;
             }
             else if (layereditButton.isInside(msg.x, msg.y)) {
                 if (OPEN_TIPS) hintManager.updateHints(pt, "图层编辑", "滚轮上下滚动改变层级");
-                pressButtom(&layereditButton);
+                pressButton(&layereditButton);
                 continue;
             }
-            else if (theme.isInside(msg.x, msg.y))
+            else if (clearButton.isInside(msg.x, msg.y))
             {
-                changeTheme();
+                shapes.clear();
+				selectedIndex = -1;
                 DrawAllShapes();
                 continue;
             }
@@ -1695,37 +1806,37 @@ int main() {
             }
             else if (drawCircleButton.isInside(msg.x, msg.y)) {
                 if (OPEN_TIPS) hintManager.updateHints(pt, "绘制圆", "左键点击确定圆心，点击左键确定半径");
-                pressButtom(&drawCircleButton);
+                pressButton(&drawCircleButton);
                 continue;
             }
             else if (drawRectButton.isInside(msg.x, msg.y)) {
                 if (OPEN_TIPS) hintManager.updateHints(pt, "绘制矩形", "拖拽画矩形");
-                pressButtom(&drawRectButton);
+                pressButton(&drawRectButton);
                 continue;
             }
             else if (drawZhexianButton.isInside(msg.x, msg.y)) {
                 if (OPEN_TIPS) hintManager.updateHints(pt, "绘制折线", "左键点击确定第一个点，点击左键确定下一个点，右键结束");
-                pressButtom(&drawZhexianButton);
+                pressButton(&drawZhexianButton);
                 continue;
             }
             else if (drawDuoButton.isInside(msg.x, msg.y)) {
                 if (OPEN_TIPS) hintManager.updateHints(pt, "绘制多边形", "左键点击确定第一个点，点击左键确定下一个点，右键结束");
-                pressButtom(&drawDuoButton);
+                pressButton(&drawDuoButton);
                 continue;
             }
             else if (selectShapeButton.isInside(msg.x, msg.y)) {
                 if (OPEN_TIPS) hintManager.updateHints(pt, "选择图形", "左键点击选择图形，拖动移动，滚轮选择图形，右键修改图形参数");
-                pressButtom(&selectShapeButton);
+                pressButton(&selectShapeButton);
                 continue;
             }
             else if (drawTuoYuanButton.isInside(msg.x, msg.y)) {
                 if (OPEN_TIPS) hintManager.updateHints(pt, "绘制椭圆", "拖拽画椭圆");
-                pressButtom(&drawTuoYuanButton);
+                pressButton(&drawTuoYuanButton);
                 continue;
             }
             else if (zoomButton.isInside(msg.x, msg.y)) {
                 if (OPEN_TIPS) hintManager.updateHints(pt, "缩放", "滚轮上下滚动缩放图形");
-                pressButtom(&zoomButton);
+                pressButton(&zoomButton);
                 continue;
             }
             else if (duplicateButton.isInside(msg.x, msg.y)) {
