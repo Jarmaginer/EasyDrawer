@@ -107,6 +107,16 @@ public:
         }
 
     }
+    void drawEditButton(int left,int top,int right,int bottom) const {
+
+        setlinecolor(YELLOW);
+        fillrectangle(left, top, right, bottom);
+
+        settextstyle(24, 0, _T("Arial"));
+        settextcolor(WHITE);
+        outtextxy((left + right) / 2 - 5 * sizeof(_T("编辑")), top + 13, _T("编辑"));
+        setlinecolor(WHITE);
+    }
     void draw() const {
         if (isPressed) {
             setfillcolor(RED);
@@ -1324,6 +1334,7 @@ void loadProject(const std::string& filePath, std::vector<std::shared_ptr<Shape>
         return;
     }
     shapes.clear();
+	selectedIndex = -1;
     std::string line;
     std::map<std::string, std::function<std::shared_ptr<Shape>()>> shapeCreators = {
         { "Circle", []() -> std::shared_ptr<Shape> { return std::make_shared<Circle>(); } },
