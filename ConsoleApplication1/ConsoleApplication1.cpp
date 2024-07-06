@@ -126,15 +126,15 @@ public:
     }
     void drawcopyButton(int left, int top, int right, int bottom) const {
 
-        setfillcolor(DARKGRAY);
+        THEME == 0 ? setfillcolor(DARKGRAY) : setfillcolor(LIGHTGRAY);
         fillrectangle(left, top, right, bottom);
-        setlinecolor(YELLOW);
+        THEME == 0 ? setlinecolor(YELLOW) : setlinecolor(BLACK);
         rectangle(left, top, right, bottom);
 
         settextstyle(21, 0, _T("Arial"));
-        settextcolor(YELLOW);
+        THEME == 0 ? settextcolor(YELLOW) : settextcolor(BLACK);
         outtextxy((left + right) / 2 - 5 * 4 + 3, top + 6, _T("拷贝"));
-        setlinecolor(YELLOW);
+        THEME == 0 ? setlinecolor(YELLOW) : setlinecolor(WHITE);
     }
     void draw() const {
         if (isPressed) {
@@ -210,7 +210,7 @@ Button theme(1500, 50, 1600, 100, L"画板颜色");
 Button saveButton(1500, 100, 1600, 150, _T("保存工程"));
 Button loadButton(1500, 150, 1600, 200, _T("读取工程"));
 
-Button copyButton(0, 0, 25, 25, _T("拷贝"));
+Button copyButton(-100, -100, -25, -25, _T("拷贝"));
 
 Button WhiteButton(0, 0, 25, 25, _T(""));
 Button RedButton(25, 0, 50, 25, _T(""));
@@ -1448,6 +1448,7 @@ int main() {
             isDragging = true;
             lastMousePos = pt;
             DrawAllShapes();
+            continue;
             break;
         case WM_LBUTTONDOWN:
 
