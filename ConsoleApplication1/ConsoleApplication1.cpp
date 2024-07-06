@@ -10,6 +10,7 @@
 #include <sstream>
 #include <algorithm>
 
+
 #include <CommCtrl.h>
 #include <CommDlg.h>
 #include <Shlobj.h>
@@ -35,6 +36,7 @@
 int THEME = 0; // 0为黑色主题，1为白色主题
 bool FRESH_WHILE_MOVEMOUSE = false; // 鼠标移动时是否刷新画布
 bool OPEN_TIPS = true; // 是否打开提示
+bool OPEN_DOUBLE_CLICK = false; // 是否双击
 int SCREEN_WIDTH = 1600;
 int SCREEN_HEIGHT = 900;
 
@@ -124,7 +126,11 @@ public:
         }
 
     }
-    void drawcopyButton(int left, int top, int right, int bottom) const {
+    void drawcopyButton(int left, int top, int right, int bottom) {
+		this->bottom = bottom;
+		this->left = left;
+		this->right = right;
+		this->top = top;
 
         THEME == 0 ? setfillcolor(DARKGRAY) : setfillcolor(LIGHTGRAY);
         fillrectangle(left, top, right, bottom);
@@ -209,6 +215,7 @@ Button layereditButton(1500, 0, 1600, 50, _T("图层编辑"));
 Button theme(1500, 50, 1600, 100, L"画板颜色");
 Button saveButton(1500, 100, 1600, 150, _T("保存工程"));
 Button loadButton(1500, 150, 1600, 200, _T("读取工程"));
+Button insertButton(1500, 200, 1600, 250, _T("置入对象"));
 
 Button copyButton(-100, -100, -25, -25, _T("拷贝"));
 
@@ -261,6 +268,20 @@ Button* colourbuttons[] = {
     &WhiteButton
 
 };
+
+void CopyTextToClipboard(const std::string& text) {
+    if (!OpenClipboard(NULL)) {
+        return;
+    }
+    EmptyClipboard();
+    HGLOBAL hglb = GlobalAlloc(GMEM_MOVEABLE, text.size() + 1);
+    if (hglb) {
+        memcpy(GlobalLock(hglb), text.c_str(), text.size() + 1);
+        GlobalUnlock(hglb);
+        SetClipboardData(CF_TEXT, hglb);
+    }
+    CloseClipboard();
+}
 
 LPCWSTR stringToLPCWSTR(std::string str)
 {
@@ -328,6 +349,7 @@ void drawButton() {
     modifyLineWidthButton.draw();
     saveButton.draw();
     loadButton.draw();
+	insertButton.draw();
 
     BlackButton.drawColorButtom(BLACK);
     RedButton.drawColorButtom(RED);
@@ -1375,13 +1397,14 @@ bool saveProject(const std::vector<std::shared_ptr<Shape>>& shapes) {
     return false;
 }
 
-void loadProject(const std::string& filePath, std::vector<std::shared_ptr<Shape>>& shapes) {
+int loadProject(const std::string& filePath, std::vector<std::shared_ptr<Shape>>& shapes,bool needClear = true) {
+    int count = 0;
     std::fstream file(filePath);
     if (!file) {
         std::wcerr << L"文件打开失败！" << std::endl;
-        return;
+        return -1;
     }
-    shapes.clear();
+    if(needClear) shapes.clear();
     selectedIndex = -1;
     std::string line;
     std::map<std::string, std::function<std::shared_ptr<Shape>()>> shapeCreators = {
@@ -1402,13 +1425,15 @@ void loadProject(const std::string& filePath, std::vector<std::shared_ptr<Shape>
             std::shared_ptr<Shape> shape = shapeCreators[shapeType]();
             shape->parseInfoFromStream(ss);
             shapes.push_back(shape);
+			count++;
         }
     }
+    return count;
 }
 
 int main() {
     // 初始化图形窗口
-    initgraph(1600, 900, EX_SHOWCONSOLE | EX_DBLCLKS);
+    OPEN_DOUBLE_CLICK ? initgraph(1600, 900, EX_SHOWCONSOLE | EX_DBLCLKS) : initgraph(1600, 900, EX_SHOWCONSOLE);
     setbkmode(TRANSPARENT);
     cleardevice();
     drawButton();
@@ -1417,7 +1442,6 @@ int main() {
     WhiteButton.press();
     while (true) {
         // 获取鼠标消息
-
         MOUSEMSG msg = GetMouseMsg();
         drawButton();
         POINT pt = { msg.x, msg.y };
@@ -1431,9 +1455,8 @@ int main() {
         }
         if (OPEN_TIPS) hintManager.updatePt(pt);
         if (!canBeSelected) { selectedIndex = -1; }
-
-        switch (msg.uMsg) {
-        case WM_LBUTTONDBLCLK:
+		if (OPEN_DOUBLE_CLICK && msg.uMsg == WM_LBUTTONDBLCLK)
+        {
             if (OPEN_TIPS) hintManager.updateHints(pt, "选择图形", "左键点击选择图形，拖动移动，滚轮选择图形，右键修改图形参数");
             pressButtom(&selectShapeButton);
             for (size_t i = 0; i < shapes.size(); ++i) {
@@ -1448,10 +1471,11 @@ int main() {
             isDragging = true;
             lastMousePos = pt;
             DrawAllShapes();
-            continue;
-            break;
-        case WM_LBUTTONDOWN:
+		}
 
+        switch (msg.uMsg) {
+        
+        case WM_LBUTTONDOWN:
             if (insertImageButton.isInside(msg.x, msg.y)) {
                 // 打开文件对话框选择图片
                 OPENFILENAME ofn;
@@ -1511,6 +1535,44 @@ int main() {
                     DrawAllShapes();
                 }
             }
+            else if (insertButton.isInside(msg.x, msg.y)) {
+                HANDLE hConsole = GetStdHandle(STD_INPUT_HANDLE);
+                AttachConsole(ATTACH_PARENT_PROCESS);
+                //SetConsoleActiveProcess(GetCurrentProcessId());
+
+                // 接收多行输入
+                std::cout << "输入对象标签:" << std::endl;
+                std::string input;
+
+                std::map<std::string, std::function<std::shared_ptr<Shape>()>> shapeCreators = {
+                    { "Circle", []() -> std::shared_ptr<Shape> { return std::make_shared<Circle>(); } },
+                    { "Rect", []() -> std::shared_ptr<Shape> { return std::make_shared<Rect>(); } },
+                    { "Zhexian", []() -> std::shared_ptr<Shape> { return std::make_shared<Zhexian>(); } },
+                    { "Duo", []() -> std::shared_ptr<Shape> { return std::make_shared<Duo>(); } },
+                    { "Tuoyuan", []() -> std::shared_ptr<Shape> { return std::make_shared<Tuoyuan>(); } },
+                    { "Image", []() -> std::shared_ptr<Shape> { return std::make_shared<Image>(); } }
+                };
+                int count = 0;
+                while (std::getline(std::cin, input)&&input!="end") {
+                    std::stringstream ss(input);
+                    std::string shapeType;
+                    ss >> shapeType;
+
+                    if (shapeCreators.find(shapeType) != shapeCreators.end()) {
+                        std::shared_ptr<Shape> shape = shapeCreators[shapeType]();
+                        shape->parseInfoFromStream(ss);
+                        shapes.push_back(shape);
+                        
+                        count++;
+                    }
+                }
+				std::cout << "成功置入" << count << "个对象" << std::endl;
+				MessageBox(GetHWnd(), stringToLPCWSTR(("成功置入"+std::to_string(count)+"个对象")), _T("提示"), MB_OK);
+                FreeConsole();
+
+                // 重新绘制所有形状
+                DrawAllShapes();
+            }
             else if (modifyLineWidthButton.isInside(msg.x, msg.y))
             {
                 pressButtom(&modifyLineWidthButton);
@@ -1529,7 +1591,10 @@ int main() {
                 continue;
             }
             else if (copyButton.isInside(msg.x, msg.y)) {
-
+                std::string label = shapes[selectedIndex]->generateLabel();
+                CopyTextToClipboard(label);
+				MessageBox(GetHWnd(), _T("已将标签拷贝到剪贴板"), _T("提示"), MB_OK);
+                DrawAllShapes();
             }
             else if (BlackButton.isInside(msg.x, msg.y)) {
                 COLOR = BLACK;
@@ -1784,6 +1849,7 @@ int main() {
             }
 
             break;
+
 
         case WM_RBUTTONDOWN:
             // 右键按下，结束折线绘制或多边形绘制
