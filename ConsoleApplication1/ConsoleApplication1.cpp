@@ -396,7 +396,14 @@ public:
         }
         return false;
     }
-
+    bool loadImageUsedInLoad(const std::string& filename) {
+        this->filename = filename;
+        loadimage(&m_image, stringToLPCWSTR(filename), width, height);
+        if (&m_image != NULL) {
+            return true;
+        }
+        return false;
+    }
     // 绘制图片
     void draw() const override {
         putimage(topLeft.x, topLeft.y, width , height ,&m_image,0,0);
@@ -425,7 +432,7 @@ public:
         ss >> ws >> token; // 文件名: C:\Users\23258\Pictures\1.png
         filename = token;
 
-        loadImage(filename);
+        loadImageUsedInLoad(filename);
     }
     std::string generateLabel() const {
         std::wstringstream ss;
