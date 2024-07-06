@@ -26,7 +26,7 @@
 #define drawTuoyuanMode drawTuoYuanButton.isPressed
 #define selectMode selectShapeButton.isPressed
 #define zoomMode zoomButton.isPressed
-#define layerEditMode layerEditButton.isPressed
+#define layerEditMode layereditButton.isPressed
 #define modifyLineWidthMode modifyLineWidthButton.isPressed
 
 #define canBeSelected (selectMode || zoomMode || layerEditMode || modifyLineWidthMode)
@@ -124,7 +124,7 @@ public:
         }
 
     }
-    void drawEditButton(int left, int top, int right, int bottom) const {
+    void drawcopyButton(int left, int top, int right, int bottom) const {
 
         setfillcolor(DARKGRAY);
         fillrectangle(left, top, right, bottom);
@@ -133,7 +133,7 @@ public:
 
         settextstyle(21, 0, _T("Arial"));
         settextcolor(YELLOW);
-        outtextxy((left + right) / 2 - 5 * 4 + 3, top + 6, _T("编辑"));
+        outtextxy((left + right) / 2 - 5 * 4 + 3, top + 6, _T("拷贝"));
         setlinecolor(YELLOW);
     }
     void draw() const {
@@ -200,17 +200,17 @@ Button drawTuoYuanButton(600, 0, 700, 50, _T("椭圆"));
 Button selectShapeButton(700, 0, 800, 50, _T("选择"));
 Button zoomButton(800, 0, 900, 50, _T("缩放"));
 Button fillButton(900, 0, 1000, 50, _T("填充"));
-Button copyButton(1000, 0, 1100, 50, _T("复制"));
+Button duplicateButton(1000, 0, 1100, 50, _T("复制"));
 Button deleteButton(1100, 0, 1200, 50, _T("删除"));
 Button changeLineStyleButton(1200, 0, 1300, 50, _T("改变线型"));
 Button modifyLineWidthButton(1300, 0, 1400, 50, _T("修改线宽"));
 Button insertImageButton(1400, 0, 1500, 50, _T("置入图片"));
-Button layerEditButton(1500, 0, 1600, 50, _T("图层编辑"));
+Button layereditButton(1500, 0, 1600, 50, _T("图层编辑"));
 Button theme(1500, 50, 1600, 100, L"画板颜色");
 Button saveButton(1500, 100, 1600, 150, _T("保存工程"));
 Button loadButton(1500, 150, 1600, 200, _T("读取工程"));
 
-Button editButton(0, 0, 25, 25, _T("编辑"));
+Button copyButton(0, 0, 25, 25, _T("拷贝"));
 
 Button WhiteButton(0, 0, 25, 25, _T(""));
 Button RedButton(25, 0, 50, 25, _T(""));
@@ -237,7 +237,7 @@ Button* buttons[] = {
     &drawTuoYuanButton,
     &selectShapeButton,
     &zoomButton,
-    &layerEditButton,
+    &layereditButton,
     &modifyLineWidthButton,
     &theme
 };
@@ -318,10 +318,10 @@ void drawButton() {
     drawTuoYuanButton.draw();
     selectShapeButton.draw();
     zoomButton.draw();
-    copyButton.draw();
+    duplicateButton.draw();
     deleteButton.draw();
     fillButton.draw();
-    layerEditButton.draw();
+    layereditButton.draw();
     insertImageButton.draw();
 
     changeLineStyleButton.draw();
@@ -1264,7 +1264,7 @@ void DrawAllShapes() {
             pos = next_pos + 1;
         }
 
-        editButton.drawEditButton(bbox.right - 40, bbox.bottom + 10, bbox.right, bbox.bottom + 40);
+        copyButton.drawcopyButton(bbox.right - 40, bbox.bottom + 10, bbox.right, bbox.bottom + 40);
 
         for (const auto& shape : shapes) {
             // 如果图形被选中
@@ -1408,7 +1408,7 @@ void loadProject(const std::string& filePath, std::vector<std::shared_ptr<Shape>
 
 int main() {
     // 初始化图形窗口
-    initgraph(1600, 900);
+    initgraph(1600, 900, EX_SHOWCONSOLE | EX_DBLCLKS);
     setbkmode(TRANSPARENT);
     cleardevice();
     drawButton();
@@ -1433,6 +1433,22 @@ int main() {
         if (!canBeSelected) { selectedIndex = -1; }
 
         switch (msg.uMsg) {
+        case WM_LBUTTONDBLCLK:
+            if (OPEN_TIPS) hintManager.updateHints(pt, "选择图形", "左键点击选择图形，拖动移动，滚轮选择图形，右键修改图形参数");
+            pressButtom(&selectShapeButton);
+            for (size_t i = 0; i < shapes.size(); ++i) {
+                RECT bbox = shapes[i]->getBoundingBox();
+                if (pt.x >= bbox.left && pt.x <= bbox.right &&
+                    pt.y >= bbox.top && pt.y <= bbox.bottom) {
+                    selectedIndex = static_cast<int>(i);
+
+                    break;
+                }
+            }
+            isDragging = true;
+            lastMousePos = pt;
+            DrawAllShapes();
+            break;
         case WM_LBUTTONDOWN:
 
             if (insertImageButton.isInside(msg.x, msg.y)) {
@@ -1500,20 +1516,19 @@ int main() {
                 if (OPEN_TIPS) hintManager.updateHints(pt, "修改线宽", "滚轮上下滚动增减线宽");
                 continue;
             }
-            else if (layerEditButton.isInside(msg.x, msg.y)) {
+            else if (layereditButton.isInside(msg.x, msg.y)) {
                 if (OPEN_TIPS) hintManager.updateHints(pt, "图层编辑", "滚轮上下滚动改变层级");
-                pressButtom(&layerEditButton);
+                pressButtom(&layereditButton);
                 continue;
             }
             else if (theme.isInside(msg.x, msg.y))
             {
-
                 changeTheme();
-
                 DrawAllShapes();
-
-
                 continue;
+            }
+            else if (copyButton.isInside(msg.x, msg.y)) {
+
             }
             else if (BlackButton.isInside(msg.x, msg.y)) {
                 COLOR = BLACK;
@@ -1647,7 +1662,7 @@ int main() {
                 pressButtom(&zoomButton);
                 continue;
             }
-            else if (copyButton.isInside(msg.x, msg.y)) {
+            else if (duplicateButton.isInside(msg.x, msg.y)) {
                 if (OPEN_TIPS) hintManager.updateHints(pt, "复制", "复制选中的图形");
                 if (selectedIndex == -1) {
                     HWND hnd = GetHWnd();
