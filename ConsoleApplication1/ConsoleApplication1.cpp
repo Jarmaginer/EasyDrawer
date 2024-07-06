@@ -30,7 +30,7 @@
 #define modifyLineWidthMode modifyLineWidthButton.isPressed
 
 #define canBeSelected (selectMode || zoomMode || layerEditMode || modifyLineWidthMode)
-    
+
 //全局设定
 int THEME = 0; // 0为黑色主题，1为白色主题
 bool FRESH_WHILE_MOVEMOUSE = false; // 鼠标移动时是否刷新画布
@@ -43,44 +43,61 @@ int selectedIndex = -1;
 std::string ws;
 
 std::wstring colorToString(int color) {
-	switch (color) {
-	case BLACK:
-		return L"黑色";
-	case BLUE:
-		return L"蓝色";
-	case GREEN:
-		return L"绿色";
-	case CYAN:
-		return L"青色";
-	case RED:
-		return L"红色";
-	case MAGENTA:
-		return L"品红";
-	case BROWN:
-		return L"棕色";
-	case LIGHTGRAY:
-		return L"浅灰色";
-	case DARKGRAY:
-		return L"深灰色";
-	case LIGHTBLUE:
-		return L"浅蓝色";
-	case LIGHTGREEN:
-		return L"浅绿色";
-	case LIGHTCYAN:
-		return L"浅青色";
-	case LIGHTRED:
-		return L"浅红色";
-	case LIGHTMAGENTA:
-		return L"浅品红";
-	case YELLOW:
-		return L"黄色";
-	case WHITE:
-		return L"白色";
-	default:
-		return L"色值="+std::to_wstring(color);
-	}
+    switch (color) {
+    case BLACK:
+        return L"黑色";
+    case BLUE:
+        return L"蓝色";
+    case GREEN:
+        return L"绿色";
+    case CYAN:
+        return L"青色";
+    case RED:
+        return L"红色";
+    case MAGENTA:
+        return L"品红";
+    case BROWN:
+        return L"棕色";
+    case LIGHTGRAY:
+        return L"浅灰色";
+    case DARKGRAY:
+        return L"深灰色";
+    case LIGHTBLUE:
+        return L"浅蓝色";
+    case LIGHTGREEN:
+        return L"浅绿色";
+    case LIGHTCYAN:
+        return L"浅青色";
+    case LIGHTRED:
+        return L"浅红色";
+    case LIGHTMAGENTA:
+        return L"浅品红";
+    case YELLOW:
+        return L"黄色";
+    case WHITE:
+        return L"白色";
+    default:
+        return L"色值=" + std::to_wstring(color);
+    }
 
 }
+
+
+void changeTheme()
+{
+    if (THEME == 0)
+    {
+        THEME = 1;
+        setbkcolor(WHITE);
+    }
+    else
+    {
+        THEME = 0;
+        setbkcolor(BLACK);
+    }
+}
+
+
 
 
 // 按钮类
@@ -107,27 +124,40 @@ public:
         }
 
     }
-    void drawEditButton(int left,int top,int right,int bottom) const {
+    void drawEditButton(int left, int top, int right, int bottom) const {
 
         setfillcolor(DARKGRAY);
         fillrectangle(left, top, right, bottom);
         setlinecolor(YELLOW);
         rectangle(left, top, right, bottom);
-        
+
         settextstyle(21, 0, _T("Arial"));
         settextcolor(YELLOW);
-        outtextxy((left + right) / 2 - 5*4+3, top + 6, _T("编辑"));
+        outtextxy((left + right) / 2 - 5 * 4 + 3, top + 6, _T("编辑"));
         setlinecolor(YELLOW);
     }
     void draw() const {
         if (isPressed) {
-            setfillcolor(RED);
+            if (THEME == 0)
+                setfillcolor(RED);
+
+            else {
+                setfillcolor(LIGHTRED);
+            }
         }
         else {
-            setfillcolor(BLUE);
+            if (THEME == 0)
+                setfillcolor(BLUE);
+
+            else {
+                setfillcolor(LIGHTBLUE);
+            }
         }
         setlinecolor(YELLOW);
-        fillrectangle(left, top, right, bottom);
+        if (THEME == 0)
+            fillrectangle(left, top, right, bottom);
+        else
+            fillroundrect(left, top, right, bottom, 10, 10);
 
         settextstyle(24, 0, _T("Arial"));
         settextcolor(WHITE);
@@ -154,6 +184,7 @@ private:
 
 };
 Button drawCircleButton(200, 0, 300, 50, _T("圆"));
+
 Button drawRectButton(300, 0, 400, 50, _T("矩形"));
 Button drawZhexianButton(400, 0, 500, 50, _T("折线"));
 Button drawDuoButton(500, 0, 600, 50, _T("多边形"));
@@ -169,6 +200,7 @@ Button insertImageButton(1400, 0, 1500, 50, _T("置入图片"));
 Button layerEditButton(1500, 0, 1600, 50, _T("图层编辑"));
 Button saveButton(1500, 50, 1600, 100, _T("保存工程"));
 Button loadButton(1500, 100, 1600, 150, _T("读取工程"));
+Button theme(1500, 850, 1600, 900, L"画板颜色");
 
 Button editButton(0, 0, 25, 25, _T("编辑"));
 
@@ -198,7 +230,8 @@ Button* buttons[] = {
     &selectShapeButton,
     &zoomButton,
     &layerEditButton,
-    &modifyLineWidthButton
+    &modifyLineWidthButton,
+    &theme
 };
 
 Button* colourbuttons[] = {
@@ -269,6 +302,7 @@ std::wstring string2wstring(std::string str)
 
 void drawButton() {
     BeginBatchDraw();
+    theme.draw();
     drawCircleButton.draw();
     drawRectButton.draw();
     drawZhexianButton.draw();
@@ -282,9 +316,9 @@ void drawButton() {
     layerEditButton.draw();
     insertImageButton.draw();
 
-	changeLineStyleButton.draw();
+    changeLineStyleButton.draw();
     modifyLineWidthButton.draw();
-	saveButton.draw();
+    saveButton.draw();
     loadButton.draw();
 
     BlackButton.drawColorButtom(BLACK);
@@ -314,7 +348,7 @@ public:
         this->mousePos = mousePos;
         this->mode = mode;
         this->tips = tips;
-        if(FRESH_WHILE_MOVEMOUSE)
+        if (FRESH_WHILE_MOVEMOUSE)
         {
             DrawAllShapes();
         }
@@ -324,18 +358,18 @@ public:
     void displayHints() const {
         settextstyle(16, 0, _T("Arial"));
         settextcolor(LIGHTGRAY);
-        outtextxy(5, SCREEN_HEIGHT-60, stringToLPCWSTR(("点击位置: (" + std::to_string(mousePos.x) + ", " + std::to_string(mousePos.y) + ")")));
+        outtextxy(5, SCREEN_HEIGHT - 60, stringToLPCWSTR(("点击位置: (" + std::to_string(mousePos.x) + ", " + std::to_string(mousePos.y) + ")")));
         outtextxy(5, SCREEN_HEIGHT - 40, stringToLPCWSTR(("模式: " + mode)));
-        outtextxy(5, SCREEN_HEIGHT-20, stringToLPCWSTR("提示: "+tips));
+        outtextxy(5, SCREEN_HEIGHT - 20, stringToLPCWSTR("提示: " + tips));
 
     }
-	void updatePt(POINT pt) {
-		this->mousePos = pt;
+    void updatePt(POINT pt) {
+        this->mousePos = pt;
         if (FRESH_WHILE_MOVEMOUSE)
         {
             DrawAllShapes();
         }
-	}
+    }
 
 private:
     POINT mousePos;
@@ -353,30 +387,30 @@ public:
     virtual ~Shape() {}
     virtual std::shared_ptr<Shape> clone() const = 0;
     virtual std::string generateLabel() const = 0;
-	virtual void parseInfoFromStream(std::stringstream& ss) = 0;
+    virtual void parseInfoFromStream(std::stringstream& ss) = 0;
     int color = COLOR;
     int fillcolor = COLOR;
     bool is_fill = false;
     int lineWidth = 1; // 默认线宽
     int lineStyle = PS_SOLID; // 默认线型，PS_SOLID表示实线
-	virtual void changeLineStyle() {
-		if (lineStyle == 4)
-		{
-			lineStyle = 0;
-		}
-		else
-		{
-			lineStyle++;
-		}
-	}
-	virtual void addLineWidth() {
-		lineWidth++;
-	}
-	virtual void reduceLineWidth() {
-		if (lineWidth > 1) {
-			lineWidth--;
-		}
-	}
+    virtual void changeLineStyle() {
+        if (lineStyle == 4)
+        {
+            lineStyle = 0;
+        }
+        else
+        {
+            lineStyle++;
+        }
+    }
+    virtual void addLineWidth() {
+        lineWidth++;
+    }
+    virtual void reduceLineWidth() {
+        if (lineWidth > 1) {
+            lineWidth--;
+        }
+    }
     virtual void zoom(double factor, POINT center) = 0;
     virtual void setColor(int co) {
         this->color = co;
@@ -384,7 +418,7 @@ public:
     virtual std::wstring getInfo() const = 0;
 
     void setFill(bool fill) {
-		this->fillcolor = COLOR;
+        this->fillcolor = COLOR;
         this->is_fill = fill;
     }
     virtual void setFillColour(int co) {
@@ -403,7 +437,7 @@ public:
     bool loadImage(const std::string& filename) {
         this->filename = filename;
         loadimage(&m_image, stringToLPCWSTR(filename));
-		if (&m_image != NULL) {
+        if (&m_image != NULL) {
             width = m_image.getwidth();
             height = m_image.getheight();
             return true;
@@ -420,7 +454,7 @@ public:
     }
     // 绘制图片
     void draw() const override {
-        putimage(topLeft.x, topLeft.y, width , height ,&m_image,0,0);
+        putimage(topLeft.x, topLeft.y, width, height, &m_image, 0, 0);
     }
     void parseInfoFromStream(std::stringstream& ss) {
         std::string token;
@@ -428,9 +462,9 @@ public:
 
         ss >> token; // (151,358)
         // 移除')'
-        token.pop_back(); 
-		// 移除'('
-		token.erase(0, wcslen(L"("));
+        token.pop_back();
+        // 移除'('
+        token.erase(0, wcslen(L"("));
         std::stringstream coordStream(token);
         coordStream >> topLeft.x;
         coordStream.ignore(1, L',');
@@ -450,17 +484,17 @@ public:
     }
     std::string generateLabel() const {
         std::wstringstream ss;
-		ss << L"Image";
-		ss << L" 左上点: (" << topLeft.x << L"," << topLeft.y << L")";
-		ss << L" 宽度: " << width;
-		ss << L" 高度: " << height;
-		ss << L" 文件名: " << std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
+        ss << L"Image";
+        ss << L" 左上点: (" << topLeft.x << L"," << topLeft.y << L")";
+        ss << L" 宽度: " << width;
+        ss << L" 高度: " << height;
+        ss << L" 文件名: " << std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
         return wstring2string(ss.str());
-	}
+    }
 
     // 获取边界框
     RECT getBoundingBox() const override {
-        return { topLeft.x, topLeft.y, topLeft.x + width, topLeft.y + height};
+        return { topLeft.x, topLeft.y, topLeft.x + width, topLeft.y + height };
     }
 
     // 移动图片
@@ -495,17 +529,17 @@ public:
 
 private:
     std::string filename;
-    POINT topLeft = {100,100};
+    POINT topLeft = { 100,100 };
     int width, height;
     IMAGE m_image;
 };
 // 派生类 Circle，表示圆形
 class Circle : public Shape {
 public:
-    Circle(POINT center={0,0}, int radius=0) : center(center), radius(radius) {}
+    Circle(POINT center = { 0,0 }, int radius = 0) : center(center), radius(radius) {}
     void draw() const override {
         setlinecolor(color);
-		setlinestyle(lineStyle,lineWidth);
+        setlinestyle(lineStyle, lineWidth);
         if (is_fill) {
             setfillcolor(fillcolor);
             solidcircle(center.x, center.y, radius);
@@ -515,7 +549,7 @@ public:
             circle(center.x, center.y, radius);
         }
         setlinecolor(WHITE);
-		setlinestyle(PS_SOLID, 1);
+        setlinestyle(PS_SOLID, 1);
 
     }
     void parseInfoFromStream(std::stringstream& ss) {
@@ -527,7 +561,7 @@ public:
         //token.erase(0, wcslen(L"圆心: ("));
          // 移除')'
         token.pop_back();
-         // 移除'('
+        // 移除'('
         token.erase(0, wcslen(L"("));
         std::stringstream coordStream(token);
         coordStream >> center.x;
@@ -587,10 +621,10 @@ public:
     }
     std::wstring getInfo() const override {
         std::wstringstream ss;
-        ss << L"圆: \n半径=" << radius << L"\n圆心=(" << center.x << L"," << center.y<<L")";
+        ss << L"圆: \n半径=" << radius << L"\n圆心=(" << center.x << L"," << center.y << L")";
         ss << L"\n线条颜色=" << colorToString(color);
         if (is_fill) {
-			ss << L"\n填充颜色=" << colorToString(fillcolor);
+            ss << L"\n填充颜色=" << colorToString(fillcolor);
         }
         return ss.str();
     }
@@ -607,7 +641,7 @@ private:
 // 派生类 Rect，表示矩形
 class Rect : public Shape {
 public:
-    Rect(POINT topLeft={0,0}, POINT bottomRight={0,0}) : topLeft(topLeft), bottomRight(bottomRight) {}
+    Rect(POINT topLeft = { 0,0 }, POINT bottomRight = { 0,0 }) : topLeft(topLeft), bottomRight(bottomRight) {}
     void draw() const override {
         setlinecolor(color);
         setlinestyle(lineStyle, lineWidth);
@@ -620,16 +654,16 @@ public:
             rectangle(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
         }
         setlinecolor(WHITE);
-		setlinestyle(PS_SOLID, 1);
+        setlinestyle(PS_SOLID, 1);
     }
     void parseInfoFromStream(std::stringstream& ss) {
         std::string token;
         ss >> token; // 忽略"Rect"
 
-        ss >>  token; // 左上点: (463,188)
+        ss >> token; // 左上点: (463,188)
         //token.erase(0, wcslen(L"左上点: ("));
         token.pop_back(); // 移除')'
-		token.erase(0, wcslen(L"(")); // 移除'('
+        token.erase(0, wcslen(L"(")); // 移除'('
         std::stringstream coordStream(token);
         coordStream >> topLeft.x;
         coordStream.ignore(1, L',');
@@ -700,14 +734,14 @@ public:
         return std::make_shared<Rect>(*this);
     }
     std::wstring getInfo() const override {
-		std::wstringstream ss;
-		ss << L"矩形: \n左上点=(" << topLeft.x << L"," << topLeft.y << L")\n右下点=(" << bottomRight.x << L"," << bottomRight.y;
+        std::wstringstream ss;
+        ss << L"矩形: \n左上点=(" << topLeft.x << L"," << topLeft.y << L")\n右下点=(" << bottomRight.x << L"," << bottomRight.y;
         ss << L"\n线条颜色=" << colorToString(color);
         if (is_fill) {
             ss << L"\n填充颜色=" << colorToString(fillcolor);
         }
-		return ss.str();
-	}
+        return ss.str();
+    }
     void changePoints(int x, int y) {
         {
             bottomRight.x = x;
@@ -734,21 +768,21 @@ public:
         std::string token;
         ss >> token; // 忽略"Zhexian"
 
-        ss >>  token; // 点数: 6
+        ss >> token; // 点数: 6
         //token.erase(0, wcslen(L"点数: "));
         int numPoints = std::stoi(token);
 
         ss >> ws >> token; // 点集 {#(974,178)#(791,438)#(1084,446)#(1050,313)#(1237,319)#(1261,154)}
         //token.erase(0, wcslen(L"点集 {#"));
         token.pop_back(); // 移除'}'
-		token.erase(0, wcslen(L"{#")); // 移除'{#'
+        token.erase(0, wcslen(L"{#")); // 移除'{#'
         std::stringstream pointStream(token);
         std::string pointToken;
         while (std::getline(pointStream, pointToken, '#')) {
             if (!pointToken.empty()) {
                 pointToken.erase(0, wcslen(L"("));
                 pointToken.pop_back(); // 移除')'
-				
+
                 std::stringstream pointCoordStream(pointToken);
                 POINT pt;
                 pointCoordStream >> pt.x;
@@ -798,7 +832,7 @@ public:
             }
         }
         setlinecolor(WHITE);
-		setlinestyle(PS_SOLID, 1);
+        setlinestyle(PS_SOLID, 1);
     }
     std::string generateLabel() const {
         std::wstringstream ss;
@@ -844,24 +878,24 @@ public:
         return std::make_shared<Zhexian>(*this);
     }
     std::wstring getInfo() const override {
-		std::wstringstream ss;
-		ss << L"折线:\n Points=\n";
-		//for (int i = 0; i < sizeof(points) / sizeof(points[0]); i++)
+        std::wstringstream ss;
+        ss << L"折线:\n Points=\n";
+        //for (int i = 0; i < sizeof(points) / sizeof(points[0]); i++)
   //      {
   //          if (i > 0 && (points[i].x == points[i - 1].x) && (points[i].y == points[i - 1].y)) continue;//避免重复
-		//	ss << L"(" << points[i].x << L"," << points[i].y << L")\n";
-		//}
-		for (const auto& pt : points) {
-			ss << L"(" << pt.x << L"," << pt.y << L")";
-		}
+        //	ss << L"(" << points[i].x << L"," << points[i].y << L")\n";
+        //}
+        for (const auto& pt : points) {
+            ss << L"(" << pt.x << L"," << pt.y << L")";
+        }
         ss << L"\n线条颜色=" << colorToString(color);
         if (is_fill) {
             ss << L"\n填充颜色=" << colorToString(fillcolor);
         }
-		return ss.str();
-	}
+        return ss.str();
+    }
     void changePoints(int x, int y) {
-        int index = 0,dis = 1000000;
+        int index = 0, dis = 1000000;
         for (int i = 0; i < points.size(); i++) {
             POINT& it = points[i];
             if ((x - it.x) * (x - it.x) + (y - it.y) * (y - it.y) < dis) {
@@ -887,7 +921,7 @@ private:
 
 class Tuoyuan : public Shape {
 public:
-    Tuoyuan(POINT topLeft={0,0}, POINT bottomRight={0,0}) : topLeft(topLeft), bottomRight(bottomRight) {}
+    Tuoyuan(POINT topLeft = { 0,0 }, POINT bottomRight = { 0,0 }) : topLeft(topLeft), bottomRight(bottomRight) {}
     void draw() const override {
         setlinecolor(color);
         setlinestyle(lineStyle, lineWidth);
@@ -906,10 +940,10 @@ public:
         std::string token;
         ss >> token; // 忽略"Tuoyuan"
 
-        ss >>  token; // 左上点: (862,555)
+        ss >> token; // 左上点: (862,555)
         //token.erase(0, wcslen(L"左上点: ("));
         token.pop_back(); // 移除')'
-		token.erase(0, wcslen(L"(")); // 移除'('
+        token.erase(0, wcslen(L"(")); // 移除'('
         std::stringstream coordStream(token);
         coordStream >> topLeft.x;
         coordStream.ignore(1, L',');
@@ -946,15 +980,15 @@ public:
     }
     std::string generateLabel() const {
         std::wstringstream ss;
-		ss << L"Tuoyuan";
-		ss << L" 左上点: (" << topLeft.x << L"," << topLeft.y << L")";
-		ss << L" 右下点: (" << bottomRight.x << L"," << bottomRight.y << L")";
-		ss << L" 线条颜色: " << color;
-		ss << L" 填充状态: " << (int)is_fill;
-		ss << L" 填充颜色: " << fillcolor;
-		ss << L" 线宽: " << lineWidth << L" 线型: " << lineStyle;
+        ss << L"Tuoyuan";
+        ss << L" 左上点: (" << topLeft.x << L"," << topLeft.y << L")";
+        ss << L" 右下点: (" << bottomRight.x << L"," << bottomRight.y << L")";
+        ss << L" 线条颜色: " << color;
+        ss << L" 填充状态: " << (int)is_fill;
+        ss << L" 填充颜色: " << fillcolor;
+        ss << L" 线宽: " << lineWidth << L" 线型: " << lineStyle;
         return wstring2string(ss.str());
-	}
+    }
     RECT getBoundingBox() const override {
         return { topLeft.x, topLeft.y, bottomRight.x, bottomRight.y };
     }
@@ -978,14 +1012,14 @@ public:
         return std::make_shared<Tuoyuan>(*this);
     }
     std::wstring getInfo() const override {
-		std::wstringstream ss;
-		ss << L"椭圆: \n左上点=(" << topLeft.x << L"," << topLeft.y << L")\n右下点=(" << bottomRight.x << L"," << bottomRight.y;
+        std::wstringstream ss;
+        ss << L"椭圆: \n左上点=(" << topLeft.x << L"," << topLeft.y << L")\n右下点=(" << bottomRight.x << L"," << bottomRight.y;
         ss << L"\n线条颜色=" << colorToString(color);
         if (is_fill) {
             ss << L"\n填充颜色=" << colorToString(fillcolor);
         }
-		return ss.str();
-	}
+        return ss.str();
+    }
     void changePoints(int x, int y) {
         {
             bottomRight.x = x;
@@ -1023,7 +1057,7 @@ public:
             polygon(&points[0], points.size());
         }
         setlinecolor(WHITE);
-		setlinestyle(PS_SOLID, 1);
+        setlinestyle(PS_SOLID, 1);
     }
     void parseInfoFromStream(std::stringstream& ss) {
         std::string token;
@@ -1036,7 +1070,7 @@ public:
         ss >> ws >> token; // 点集 {#(216,569)#(170,756)#(574,808)#(450,621)}
         //token.erase(0, wcslen(L"点集 {#"));
         token.pop_back(); // 移除'}'
-		token.erase(0, wcslen(L"{#")); // 移除'{#'
+        token.erase(0, wcslen(L"{#")); // 移除'{#'
         std::stringstream pointStream(token);
         std::string pointToken;
         while (std::getline(pointStream, pointToken, '#')) {
@@ -1074,19 +1108,19 @@ public:
     }
     std::string generateLabel() const {
         std::wstringstream ss;
-		ss << L"Duo";
-		ss << L" 点数: " << points.size();
+        ss << L"Duo";
+        ss << L" 点数: " << points.size();
         ss << L" 点集 {";
-		for (const auto& pt : points) {
-			ss << L"#(" << pt.x << L"," << pt.y << L")";
-		}
-		ss << L"}";
-		ss << L" 线条颜色: " << color;
-		ss << L" 填充状态: " << (int)is_fill;
-		ss << L" 填充颜色: " << fillcolor;
-		ss << L" 线宽: " << lineWidth << L" 线型: " << lineStyle;
+        for (const auto& pt : points) {
+            ss << L"#(" << pt.x << L"," << pt.y << L")";
+        }
+        ss << L"}";
+        ss << L" 线条颜色: " << color;
+        ss << L" 填充状态: " << (int)is_fill;
+        ss << L" 填充颜色: " << fillcolor;
+        ss << L" 线宽: " << lineWidth << L" 线型: " << lineStyle;
         return wstring2string(ss.str());
-	}
+    }
     RECT getBoundingBox() const override {
         if (points.empty()) return { 0, 0, 0, 0 };
         int minX = points[0].x, maxX = points[0].x, minY = points[0].y, maxY = points[0].y;
@@ -1173,7 +1207,7 @@ void DrawAllShapes() {
 
     BeginBatchDraw();
     cleardevice();
-	if (OPEN_TIPS) hintManager.displayHints();
+    if (OPEN_TIPS) hintManager.displayHints();
     drawButton();
     // 绘制所有形状
 
@@ -1202,14 +1236,14 @@ void DrawAllShapes() {
     }
     if (selectedIndex != -1) {
         RECT bbox = shapes[selectedIndex]->getBoundingBox();
-        setlinecolor(YELLOW);
+        THEME == 0 ? setlinecolor(YELLOW) : setlinecolor(DARKGRAY);
         rectangle(bbox.left - 5, bbox.top - 5, bbox.right + 5, bbox.bottom + 5);
         setlinecolor(WHITE);
 
         // 显示信息
         std::wstring info = shapes[selectedIndex]->getInfo();
         settextstyle(18, 0, _T("Arial")); // 设置字体样式
-        settextcolor(YELLOW);
+        THEME==0 ? settextcolor(YELLOW) : settextcolor(DARKGRAY);
         //outtextxy(bbox.right - 200, bbox.bottom + 10, info.c_str()); // 在外框右下角显示信息
         int y = bbox.bottom + 10; // 初始y坐标
         for (size_t pos = 0; pos < info.length(); ) {
@@ -1222,27 +1256,27 @@ void DrawAllShapes() {
             pos = next_pos + 1;
         }
 
-		editButton.drawEditButton(bbox.right - 40, bbox.bottom+10, bbox.right, bbox.bottom + 40);
+        editButton.drawEditButton(bbox.right - 40, bbox.bottom + 10, bbox.right, bbox.bottom + 40);
 
         for (const auto& shape : shapes) {
             // 如果图形被选中
             if (selectedIndex != -1 && shape.get() == shapes[selectedIndex].get()) {
                 // 计算层级信息的字符串
-				std::wstring layerInfo = L"层级: " + std::to_wstring(selectedIndex);
-				std::wstring lineInfo = L"线宽: " + std::to_wstring(shape->lineWidth) + L"  线型: " + std::to_wstring(shape->lineStyle);
+                std::wstring layerInfo = L"层级: " + std::to_wstring(selectedIndex);
+                std::wstring lineInfo = L"线宽: " + std::to_wstring(shape->lineWidth) + L"  线型: " + std::to_wstring(shape->lineStyle);
 
                 // 设置字体和颜色
                 settextstyle(18, 0, _T("Arial")); // 或者选择合适的字体大小和样式
-                settextcolor(YELLOW); // 或者选择合适的颜色
+                THEME == 0 ? settextcolor(YELLOW) : settextcolor(DARKGRAY);
 
                 // 计算位置
                 int posX = bbox.left; // 距离图形右边界5个单位
-                int posY = bbox.top-30; // 距离图形顶部5个单位
+                int posY = bbox.top - 30; // 距离图形顶部5个单位
 
                 // 输出层级信息
                 outtextxy(posX, posY, layerInfo.c_str());
 
-                posX = bbox.right-100; // 距离图形右边界5个单位
+                posX = bbox.right - 100; // 距离图形右边界5个单位
                 posY = bbox.top - 30; // 距离图形顶部5个单位
                 outtextxy(posX, posY, lineInfo.c_str());
             }
@@ -1340,7 +1374,7 @@ void loadProject(const std::string& filePath, std::vector<std::shared_ptr<Shape>
         return;
     }
     shapes.clear();
-	selectedIndex = -1;
+    selectedIndex = -1;
     std::string line;
     std::map<std::string, std::function<std::shared_ptr<Shape>()>> shapeCreators = {
         { "Circle", []() -> std::shared_ptr<Shape> { return std::make_shared<Circle>(); } },
@@ -1379,8 +1413,15 @@ int main() {
         MOUSEMSG msg = GetMouseMsg();
         drawButton();
         POINT pt = { msg.x, msg.y };
-
-		if (OPEN_TIPS) hintManager.updatePt(pt);
+        if (THEME == 1)
+        {
+            setbkcolor(WHITE);
+        }
+        else
+        {
+            setbkcolor(BLACK);
+        }
+        if (OPEN_TIPS) hintManager.updatePt(pt);
         if (!canBeSelected) { selectedIndex = -1; }
 
         switch (msg.uMsg) {
@@ -1416,44 +1457,54 @@ int main() {
                     }
                 }
             }
-            else if (saveButton.isInside(msg.x,msg.y)) {
+            else if (saveButton.isInside(msg.x, msg.y)) {
                 if (saveProject(shapes)) {
-					MessageBox(GetHWnd(), _T("保存成功"), _T("提示"), MB_OK);
+                    MessageBox(GetHWnd(), _T("保存成功"), _T("提示"), MB_OK);
                 }
                 else {
-					MessageBox(GetHWnd(), _T("保存失败"), _T("错误"), MB_OK);
+                    MessageBox(GetHWnd(), _T("保存失败"), _T("错误"), MB_OK);
                 }
 
             }
             else if (loadButton.isInside(msg.x, msg.y)) {
-				OPENFILENAME ofn;
-				TCHAR szFileName[MAX_PATH] = { 0 };
+                OPENFILENAME ofn;
+                TCHAR szFileName[MAX_PATH] = { 0 };
 
-				ZeroMemory(&ofn, sizeof(ofn));
-				ofn.lStructSize = sizeof(ofn);
-				ofn.hwndOwner = NULL;
-				ofn.lpstrFile = szFileName;
-				ofn.nMaxFile = MAX_PATH;
-				ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_EXPLORER;
-				ofn.lpstrFilter = _T("Text文件 (*.txt)\0*.txt\0All Files (*.*)\0*.*\0");
-				ofn.nFilterIndex = 1;
-				ofn.lpstrInitialDir = _T(".");
+                ZeroMemory(&ofn, sizeof(ofn));
+                ofn.lStructSize = sizeof(ofn);
+                ofn.hwndOwner = NULL;
+                ofn.lpstrFile = szFileName;
+                ofn.nMaxFile = MAX_PATH;
+                ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_EXPLORER;
+                ofn.lpstrFilter = _T("Text文件 (*.txt)\0*.txt\0All Files (*.*)\0*.*\0");
+                ofn.nFilterIndex = 1;
+                ofn.lpstrInitialDir = _T(".");
 
-				if (GetOpenFileName(&ofn)) {
-					std::string filePath = convertTCharToString(szFileName);
-					loadProject(filePath, shapes);
-					DrawAllShapes();
-				}
-			}
-			else if (modifyLineWidthButton.isInside(msg.x, msg.y))
+                if (GetOpenFileName(&ofn)) {
+                    std::string filePath = convertTCharToString(szFileName);
+                    loadProject(filePath, shapes);
+                    DrawAllShapes();
+                }
+            }
+            else if (modifyLineWidthButton.isInside(msg.x, msg.y))
             {
-				pressButtom(&modifyLineWidthButton);
-				if (OPEN_TIPS) hintManager.updateHints(pt, "修改线宽", "滚轮上下滚动增减线宽");
-				continue;
-			}
+                pressButtom(&modifyLineWidthButton);
+                if (OPEN_TIPS) hintManager.updateHints(pt, "修改线宽", "滚轮上下滚动增减线宽");
+                continue;
+            }
             else if (layerEditButton.isInside(msg.x, msg.y)) {
-				if (OPEN_TIPS) hintManager.updateHints(pt, "图层编辑", "滚轮上下滚动改变层级");
+                if (OPEN_TIPS) hintManager.updateHints(pt, "图层编辑", "滚轮上下滚动改变层级");
                 pressButtom(&layerEditButton);
+                continue;
+            }
+            else if (theme.isInside(msg.x, msg.y))
+            {
+
+                changeTheme();
+
+                DrawAllShapes();
+
+
                 continue;
             }
             else if (BlackButton.isInside(msg.x, msg.y)) {
@@ -1554,42 +1605,42 @@ int main() {
                 continue;
             }
             else if (drawCircleButton.isInside(msg.x, msg.y)) {
-				if (OPEN_TIPS) hintManager.updateHints(pt, "绘制圆", "左键点击确定圆心，点击左键确定半径");
+                if (OPEN_TIPS) hintManager.updateHints(pt, "绘制圆", "左键点击确定圆心，点击左键确定半径");
                 pressButtom(&drawCircleButton);
                 continue;
             }
             else if (drawRectButton.isInside(msg.x, msg.y)) {
-				if (OPEN_TIPS) hintManager.updateHints(pt, "绘制矩形", "拖拽画矩形");
+                if (OPEN_TIPS) hintManager.updateHints(pt, "绘制矩形", "拖拽画矩形");
                 pressButtom(&drawRectButton);
                 continue;
             }
             else if (drawZhexianButton.isInside(msg.x, msg.y)) {
-				if (OPEN_TIPS) hintManager.updateHints(pt, "绘制折线", "左键点击确定第一个点，点击左键确定下一个点，右键结束");
+                if (OPEN_TIPS) hintManager.updateHints(pt, "绘制折线", "左键点击确定第一个点，点击左键确定下一个点，右键结束");
                 pressButtom(&drawZhexianButton);
                 continue;
             }
             else if (drawDuoButton.isInside(msg.x, msg.y)) {
-				if (OPEN_TIPS) hintManager.updateHints(pt, "绘制多边形", "左键点击确定第一个点，点击左键确定下一个点，右键结束");
+                if (OPEN_TIPS) hintManager.updateHints(pt, "绘制多边形", "左键点击确定第一个点，点击左键确定下一个点，右键结束");
                 pressButtom(&drawDuoButton);
                 continue;
             }
             else if (selectShapeButton.isInside(msg.x, msg.y)) {
-				if (OPEN_TIPS) hintManager.updateHints(pt, "选择图形", "左键点击选择图形，拖动移动，滚轮选择图形，右键修改图形参数");
+                if (OPEN_TIPS) hintManager.updateHints(pt, "选择图形", "左键点击选择图形，拖动移动，滚轮选择图形，右键修改图形参数");
                 pressButtom(&selectShapeButton);
                 continue;
             }
             else if (drawTuoYuanButton.isInside(msg.x, msg.y)) {
-				if (OPEN_TIPS) hintManager.updateHints(pt, "绘制椭圆", "拖拽画椭圆");
+                if (OPEN_TIPS) hintManager.updateHints(pt, "绘制椭圆", "拖拽画椭圆");
                 pressButtom(&drawTuoYuanButton);
                 continue;
             }
             else if (zoomButton.isInside(msg.x, msg.y)) {
-				if (OPEN_TIPS) hintManager.updateHints(pt, "缩放", "滚轮上下滚动缩放图形");
-				pressButtom(&zoomButton);
+                if (OPEN_TIPS) hintManager.updateHints(pt, "缩放", "滚轮上下滚动缩放图形");
+                pressButtom(&zoomButton);
                 continue;
             }
             else if (copyButton.isInside(msg.x, msg.y)) {
-				if (OPEN_TIPS) hintManager.updateHints(pt, "复制", "复制选中的图形");
+                if (OPEN_TIPS) hintManager.updateHints(pt, "复制", "复制选中的图形");
                 if (selectedIndex == -1) {
                     HWND hnd = GetHWnd();
 
@@ -1610,7 +1661,7 @@ int main() {
                 }
             }
             else if (deleteButton.isInside(msg.x, msg.y)) {
-				if (OPEN_TIPS) hintManager.updateHints(pt, "删除", "删除选中的图形");
+                if (OPEN_TIPS) hintManager.updateHints(pt, "删除", "删除选中的图形");
                 if (selectedIndex == -1) {
                     HWND hnd = GetHWnd();
 
@@ -1627,11 +1678,11 @@ int main() {
                 }
             }
             else if (fillButton.isInside(msg.x, msg.y)) {
-				if (OPEN_TIPS) hintManager.updateHints(pt, "填充", "填充选中的图形");
-				if (selectedIndex != -1) {
-					shapes[selectedIndex]->setFill(!shapes[selectedIndex]->is_fill);
-					shapes[selectedIndex]->setFillColour(COLOR);
-					DrawAllShapes();
+                if (OPEN_TIPS) hintManager.updateHints(pt, "填充", "填充选中的图形");
+                if (selectedIndex != -1) {
+                    shapes[selectedIndex]->setFill(!shapes[selectedIndex]->is_fill);
+                    shapes[selectedIndex]->setFillColour(COLOR);
+                    DrawAllShapes();
                 }
                 else {
                     HWND hnd = GetHWnd();
@@ -1641,16 +1692,16 @@ int main() {
                 }
             }
             else if (changeLineStyleButton.isInside(msg.x, msg.y)) {
-				if (selectedIndex != -1) {
-					shapes[selectedIndex]->changeLineStyle();
-					DrawAllShapes();
-				}
+                if (selectedIndex != -1) {
+                    shapes[selectedIndex]->changeLineStyle();
+                    DrawAllShapes();
+                }
                 else {
-					HWND hnd = GetHWnd();
+                    HWND hnd = GetHWnd();
 
-					MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
-					continue;
-				}
+                    MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
+                    continue;
+                }
             }
 
             else if (canBeSelected) {
@@ -1666,7 +1717,7 @@ int main() {
                 isDragging = true;
                 lastMousePos = pt;
                 DrawAllShapes();
-                }
+            }
             else if (drawCircleMode) {
                 // 左键按下，开始绘制圆
                 isDrawingCircle = true;
@@ -1725,8 +1776,8 @@ int main() {
                 DrawAllShapes();
             }
             else if (canBeSelected) {
-                
-                    isRDraging = true;
+
+                isRDraging = true;
             }
             break;
 
@@ -1833,38 +1884,38 @@ int main() {
             }
             if (layerEditMode && selectedIndex != -1) {
                 short temp = msg.wheel;
-                    if (temp == 120) {
-                        // 上移一层
-                        if (selectedIndex > 0) {
-                            std::swap(shapes[selectedIndex], shapes[selectedIndex - 1]);
-                            selectedIndex--;
-                        }
+                if (temp == 120) {
+                    // 上移一层
+                    if (selectedIndex > 0) {
+                        std::swap(shapes[selectedIndex], shapes[selectedIndex - 1]);
+                        selectedIndex--;
                     }
-                    else{
-                        // 下移一层
-                        if (selectedIndex < shapes.size() - 1) {
-                            std::swap(shapes[selectedIndex], shapes[selectedIndex + 1]);
-                            selectedIndex++;
-                        }
+                }
+                else {
+                    // 下移一层
+                    if (selectedIndex < shapes.size() - 1) {
+                        std::swap(shapes[selectedIndex], shapes[selectedIndex + 1]);
+                        selectedIndex++;
                     }
-                    DrawAllShapes();
+                }
+                DrawAllShapes();
             }
-			if (modifyLineWidthMode) {
+            if (modifyLineWidthMode) {
                 if (selectedIndex == -1) {
                     HWND hnd = GetHWnd();
                     MessageBox(hnd, _T("必须先选择一个图形"), _T("提示"), MB_OK);
                 }
                 else {
-					short temp = msg.wheel;
-					if (temp == 120) {
-						shapes[selectedIndex]->addLineWidth();
-					}
-					else {
-						shapes[selectedIndex]->reduceLineWidth();
-					}
-					DrawAllShapes();
+                    short temp = msg.wheel;
+                    if (temp == 120) {
+                        shapes[selectedIndex]->addLineWidth();
+                    }
+                    else {
+                        shapes[selectedIndex]->reduceLineWidth();
+                    }
+                    DrawAllShapes();
                 }
-			}
+            }
             break;
 
         case WM_MBUTTONDOWN:
@@ -1876,13 +1927,13 @@ int main() {
             break;
         case WM_RBUTTONUP:
             //右键弹起
-            if(isRDraging && selectedIndex != -1) {
+            if (isRDraging && selectedIndex != -1) {
                 isRDraging = false;
             }
             break;
 
         }
-        
+
 
     }
 
