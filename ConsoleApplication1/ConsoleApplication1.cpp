@@ -109,13 +109,15 @@ public:
     }
     void drawEditButton(int left,int top,int right,int bottom) const {
 
-        setlinecolor(YELLOW);
+        setfillcolor(DARKGRAY);
         fillrectangle(left, top, right, bottom);
-
-        settextstyle(24, 0, _T("Arial"));
-        settextcolor(WHITE);
-        outtextxy((left + right) / 2 - 5 * sizeof(_T("编辑")), top + 13, _T("编辑"));
-        setlinecolor(WHITE);
+        setlinecolor(YELLOW);
+        rectangle(left, top, right, bottom);
+        
+        settextstyle(21, 0, _T("Arial"));
+        settextcolor(YELLOW);
+        outtextxy((left + right) / 2 - 5*4+3, top + 6, _T("编辑"));
+        setlinecolor(YELLOW);
     }
     void draw() const {
         if (isPressed) {
@@ -167,6 +169,8 @@ Button insertImageButton(1400, 0, 1500, 50, _T("置入图片"));
 Button layerEditButton(1500, 0, 1600, 50, _T("图层编辑"));
 Button saveButton(1500, 50, 1600, 100, _T("保存工程"));
 Button loadButton(1500, 100, 1600, 150, _T("读取工程"));
+
+Button editButton(0, 0, 25, 25, _T("编辑"));
 
 Button WhiteButton(0, 0, 25, 25, _T(""));
 Button RedButton(25, 0, 50, 25, _T(""));
@@ -1217,6 +1221,8 @@ void DrawAllShapes() {
             y += 20; // 调整y坐标以适应下一行
             pos = next_pos + 1;
         }
+
+		editButton.drawEditButton(bbox.right - 40, bbox.bottom+10, bbox.right, bbox.bottom + 40);
 
         for (const auto& shape : shapes) {
             // 如果图形被选中
