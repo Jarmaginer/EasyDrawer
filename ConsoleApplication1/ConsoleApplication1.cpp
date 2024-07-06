@@ -166,7 +166,15 @@ public:
     }
 
     bool isInside(int x, int y) const {
-        return x >= left && x <= right && y >= top && y <= bottom;
+        if(x >= left && x <= right && y >= top && y <= bottom){
+            setfillcolor(LIGHTRED);
+            fillrectangle(left, top, right, bottom);
+            Sleep(50);
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     void press() {
@@ -198,9 +206,9 @@ Button changeLineStyleButton(1200, 0, 1300, 50, _T("改变线型"));
 Button modifyLineWidthButton(1300, 0, 1400, 50, _T("修改线宽"));
 Button insertImageButton(1400, 0, 1500, 50, _T("置入图片"));
 Button layerEditButton(1500, 0, 1600, 50, _T("图层编辑"));
-Button saveButton(1500, 50, 1600, 100, _T("保存工程"));
-Button loadButton(1500, 100, 1600, 150, _T("读取工程"));
-Button theme(1500, 850, 1600, 900, L"画板颜色");
+Button theme(1500, 50, 1600, 100, L"画板颜色");
+Button saveButton(1500, 100, 1600, 150, _T("保存工程"));
+Button loadButton(1500, 150, 1600, 200, _T("读取工程"));
 
 Button editButton(0, 0, 25, 25, _T("编辑"));
 
