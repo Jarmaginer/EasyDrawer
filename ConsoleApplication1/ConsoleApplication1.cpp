@@ -15,6 +15,9 @@
 #include <Shlobj.h>
 #include <tchar.h>
 #include <fstream>
+#include <iostream>
+#include <map>
+#include <functional>
 
 #define drawCircleMode drawCircleButton.isPressed
 #define drawRectMode drawRectButton.isPressed
@@ -37,6 +40,7 @@ int SCREEN_HEIGHT = 900;
 
 static int COLOR = WHITE;
 int selectedIndex = -1;
+std::string ws;
 
 std::wstring colorToString(int color) {
 	switch (color) {
@@ -152,6 +156,7 @@ Button modifyLineWidthButton(1300, 0, 1400, 50, _T("修改线宽"));
 Button insertImageButton(1400, 0, 1500, 50, _T("置入图片"));
 Button layerEditButton(1500, 0, 1600, 50, _T("图层编辑"));
 Button saveButton(1500, 50, 1600, 100, _T("保存工程"));
+Button loadButton(1500, 100, 1600, 150, _T("读取工程"));
 
 Button WhiteButton(0, 0, 25, 25, _T(""));
 Button RedButton(25, 0, 50, 25, _T(""));
@@ -232,6 +237,21 @@ std::string wstring2string(std::wstring wstr)
     delete[] buffer;
     return result;
 }
+std::wstring string2wstring(std::string str)
+{
+    std::wstring result;
+    //获取缓冲区大小，并申请空间，缓冲区大小按字符计算  
+    int len = MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), NULL, 0);
+    TCHAR* buffer = new TCHAR[len + 1];
+    //多字节编码转换成宽字节编码  
+    MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), buffer, len);
+    buffer[len] = '\0';             //添加字符串结尾  
+    //删除缓冲区并返回值  
+    result.append(buffer);
+    delete[] buffer;
+    return result;
+}
+
 
 void drawButton() {
     BeginBatchDraw();
@@ -251,6 +271,7 @@ void drawButton() {
 	changeLineStyleButton.draw();
     modifyLineWidthButton.draw();
 	saveButton.draw();
+    loadButton.draw();
 
     BlackButton.drawColorButtom(BLACK);
     RedButton.drawColorButtom(RED);
@@ -318,6 +339,7 @@ public:
     virtual ~Shape() {}
     virtual std::shared_ptr<Shape> clone() const = 0;
     virtual std::string generateLabel() const = 0;
+	virtual void parseInfoFromStream(std::stringstream& ss) = 0;
     int color = COLOR;
     int fillcolor = COLOR;
     bool is_fill = false;
@@ -379,6 +401,32 @@ public:
     void draw() const override {
         putimage(topLeft.x, topLeft.y, width , height ,&m_image,0,0);
     }
+    void parseInfoFromStream(std::stringstream& ss) {
+        std::string token;
+        ss >> token; // 忽略"左上点: "
+
+        ss >> token; // (151,358)
+        // 移除')'
+        token.pop_back(); 
+		// 移除'('
+		token.erase(0, wcslen(L"("));
+        std::stringstream coordStream(token);
+        coordStream >> topLeft.x;
+        coordStream.ignore(1, L',');
+        coordStream >> topLeft.y;
+
+        ss >> ws >> token; // 宽度: 642
+
+        width = std::stoi(token);
+
+        ss >> ws >> token; // 高度: 303
+        height = std::stoi(token);
+
+        ss >> ws >> token; // 文件名: C:\Users\23258\Pictures\1.png
+        filename = token;
+
+        loadImage(filename);
+    }
     std::string generateLabel() const {
         std::wstringstream ss;
 		ss << L"Image";
@@ -433,7 +481,7 @@ private:
 // 派生类 Circle，表示圆形
 class Circle : public Shape {
 public:
-    Circle(POINT center, int radius) : center(center), radius(radius) {}
+    Circle(POINT center={0,0}, int radius=0) : center(center), radius(radius) {}
     void draw() const override {
         setlinecolor(color);
 		setlinestyle(lineStyle,lineWidth);
@@ -449,6 +497,47 @@ public:
 		setlinestyle(PS_SOLID, 1);
 
     }
+    void parseInfoFromStream(std::stringstream& ss) {
+        std::string token;
+        ss >> token; // 忽略"Circle"
+
+        //ss >> ws; // 吃掉空白
+        ss >> token; // 圆心: (251,308)
+        //token.erase(0, wcslen(L"圆心: ("));
+         // 移除')'
+        token.pop_back();
+         // 移除'('
+        token.erase(0, wcslen(L"("));
+        std::stringstream coordStream(token);
+        coordStream >> center.x;
+        coordStream.ignore(1, L',');
+        coordStream >> center.y;
+
+        ss >> ws >> token; // 半径: 118
+        //token.erase(0, wcslen(L"半径: "));
+        radius = std::stoi(token);
+
+        ss >> ws >> token; // 线条颜色: 5636095
+        //token.erase(0, wcslen(L"线条颜色: "));
+        color = std::stoi(token);
+
+        ss >> ws >> token; // 填充状态: 1
+        //token.erase(0, wcslen(L"填充状态: "));
+        is_fill = (token == "1");
+
+        ss >> ws >> token; // 填充颜色: 16733695
+        //token.erase(0, wcslen(L"填充颜色: "));
+        fillcolor = std::stoi(token);
+
+        ss >> ws >> token; // 线宽: 1
+        //token.erase(0, wcslen(L"线宽: "));
+        lineWidth = std::stoi(token);
+
+        ss >> ws >> token; // 线型: 0
+        //token.erase(0, wcslen(L"线型: "));
+        lineStyle = std::stoi(token);
+    }
+
     std::string generateLabel() const {
         std::wstringstream ss;
         ss << L"Circle";
@@ -497,7 +586,7 @@ private:
 // 派生类 Rect，表示矩形
 class Rect : public Shape {
 public:
-    Rect(POINT topLeft, POINT bottomRight) : topLeft(topLeft), bottomRight(bottomRight) {}
+    Rect(POINT topLeft={0,0}, POINT bottomRight={0,0}) : topLeft(topLeft), bottomRight(bottomRight) {}
     void draw() const override {
         setlinecolor(color);
         setlinestyle(lineStyle, lineWidth);
@@ -512,6 +601,50 @@ public:
         setlinecolor(WHITE);
 		setlinestyle(PS_SOLID, 1);
     }
+    void parseInfoFromStream(std::stringstream& ss) {
+        std::string token;
+        ss >> token; // 忽略"Rect"
+
+        ss >>  token; // 左上点: (463,188)
+        //token.erase(0, wcslen(L"左上点: ("));
+        token.pop_back(); // 移除')'
+		token.erase(0, wcslen(L"(")); // 移除'('
+        std::stringstream coordStream(token);
+        coordStream >> topLeft.x;
+        coordStream.ignore(1, L',');
+        coordStream >> topLeft.y;
+
+        ss >> ws >> token; // 右下点: (684,474)
+        //token.erase(0, wcslen(L"右下点: ("));
+        token.pop_back(); // 移除')'
+        token.erase(0, wcslen(L"(")); // 移除'('
+        coordStream.str(token);
+        coordStream.clear();
+        coordStream >> bottomRight.x;
+        coordStream.ignore(1, L',');
+        coordStream >> bottomRight.y;
+
+        ss >> ws >> token; // 线条颜色: 5636095
+        //token.erase(0, wcslen(L"线条颜色: "));
+        color = std::stoi(token);
+
+        ss >> ws >> token; // 填充状态: 0
+        //token.erase(0, wcslen(L"填充状态: "));
+        is_fill = (token == "1");
+
+        ss >> ws >> token; // 填充颜色: 5636095
+        //token.erase(0, wcslen(L"填充颜色: "));
+        fillcolor = std::stoi(token);
+
+        ss >> ws >> token; // 线宽: 6
+        //token.erase(0, wcslen(L"线宽: "));
+        lineWidth = std::stoi(token);
+
+        ss >> ws >> token; // 线型: 0
+        //token.erase(0, wcslen(L"线型: "));
+        lineStyle = std::stoi(token);
+    }
+
     std::string generateLabel() const {
         std::wstringstream ss;
         ss << L"Rect";
@@ -576,6 +709,54 @@ public:
             points.back() = pt;
         }
     }
+    void parseInfoFromStream(std::stringstream& ss) {
+        std::string token;
+        ss >> token; // 忽略"Zhexian"
+
+        ss >>  token; // 点数: 6
+        //token.erase(0, wcslen(L"点数: "));
+        int numPoints = std::stoi(token);
+
+        ss >> ws >> token; // 点集 {#(974,178)#(791,438)#(1084,446)#(1050,313)#(1237,319)#(1261,154)}
+        //token.erase(0, wcslen(L"点集 {#"));
+        token.pop_back(); // 移除'}'
+		token.erase(0, wcslen(L"{#")); // 移除'{#'
+        std::stringstream pointStream(token);
+        std::string pointToken;
+        while (std::getline(pointStream, pointToken, '#')) {
+            if (!pointToken.empty()) {
+                pointToken.erase(0, wcslen(L"("));
+                pointToken.pop_back(); // 移除')'
+				
+                std::stringstream pointCoordStream(pointToken);
+                POINT pt;
+                pointCoordStream >> pt.x;
+                pointCoordStream.ignore(1, L',');
+                pointCoordStream >> pt.y;
+                points.push_back(pt);
+            }
+        }
+
+        ss >> ws >> token; // 线条颜色: 16733695
+        //token.erase(0, wcslen(L"线条颜色: "));
+        color = std::stoi(token);
+
+        ss >> ws >> token; // 填充状态: 0
+        //token.erase(0, wcslen(L"填充状态: "));
+        is_fill = (token == "1");
+
+        ss >> ws >> token; // 填充颜色: 16733695
+        //token.erase(0, wcslen(L"填充颜色: "));
+        fillcolor = std::stoi(token);
+
+        ss >> ws >> token; // 线宽: 1
+        //token.erase(0, wcslen(L"线宽: "));
+        lineWidth = std::stoi(token);
+
+        ss >> ws >> token; // 线型: 0
+        //token.erase(0, wcslen(L"线型: "));
+        lineStyle = std::stoi(token);
+    }
     void draw() const override {
         if (points.size() < 2) return;
         if (is_fill && points.size() > 2) {
@@ -604,7 +785,7 @@ public:
         ss << L" 点数: " << points.size();
         ss << L" 点集 {";
         for (const auto& pt : points) {
-            ss << L" (" << pt.x << L"," << pt.y << L")";
+            ss << L"#(" << pt.x << L"," << pt.y << L")";
         }
         ss << L"}";
         ss << L" 线条颜色: " << color;
@@ -685,7 +866,7 @@ private:
 
 class Tuoyuan : public Shape {
 public:
-    Tuoyuan(POINT topLeft, POINT bottomRight) : topLeft(topLeft), bottomRight(bottomRight) {}
+    Tuoyuan(POINT topLeft={0,0}, POINT bottomRight={0,0}) : topLeft(topLeft), bottomRight(bottomRight) {}
     void draw() const override {
         setlinecolor(color);
         setlinestyle(lineStyle, lineWidth);
@@ -699,6 +880,48 @@ public:
         }
         setlinecolor(WHITE);
         setlinestyle(PS_SOLID, 1);
+    }
+    void parseInfoFromStream(std::stringstream& ss) {
+        std::string token;
+        ss >> token; // 忽略"Tuoyuan"
+
+        ss >>  token; // 左上点: (862,555)
+        //token.erase(0, wcslen(L"左上点: ("));
+        token.pop_back(); // 移除')'
+		token.erase(0, wcslen(L"(")); // 移除'('
+        std::stringstream coordStream(token);
+        coordStream >> topLeft.x;
+        coordStream.ignore(1, L',');
+        coordStream >> topLeft.y;
+
+        ss >> ws >> token; // 右下点: (1340,818)
+        token.erase(0, wcslen(L"("));
+        token.pop_back(); // 移除')'
+        coordStream.str(token);
+        coordStream.clear();
+        coordStream >> bottomRight.x;
+        coordStream.ignore(1, L',');
+        coordStream >> bottomRight.y;
+
+        ss >> ws >> token; // 线条颜色: 21930
+        //token.erase(0, wcslen(L"线条颜色: "));
+        color = std::stoi(token);
+
+        ss >> ws >> token; // 填充状态: 0
+        //token.erase(0, wcslen(L"填充状态: "));
+        is_fill = (token == "1");
+
+        ss >> ws >> token; // 填充颜色: 21930
+        //token.erase(0, wcslen(L"填充颜色: "));
+        fillcolor = std::stoi(token);
+
+        ss >> ws >> token; // 线宽: 1
+        //token.erase(0, wcslen(L"线宽: "));
+        lineWidth = std::stoi(token);
+
+        ss >> ws >> token; // 线型: 0
+        //token.erase(0, wcslen(L"线型: "));
+        lineStyle = std::stoi(token);
     }
     std::string generateLabel() const {
         std::wstringstream ss;
@@ -781,13 +1004,60 @@ public:
         setlinecolor(WHITE);
 		setlinestyle(PS_SOLID, 1);
     }
+    void parseInfoFromStream(std::stringstream& ss) {
+        std::string token;
+        ss >> token; // 忽略"Duo"
+
+        ss >> token; // 点数: 4
+        //token.erase(0, wcslen(L"点数: "));
+        int numPoints = std::stoi(token);
+
+        ss >> ws >> token; // 点集 {#(216,569)#(170,756)#(574,808)#(450,621)}
+        //token.erase(0, wcslen(L"点集 {#"));
+        token.pop_back(); // 移除'}'
+		token.erase(0, wcslen(L"{#")); // 移除'{#'
+        std::stringstream pointStream(token);
+        std::string pointToken;
+        while (std::getline(pointStream, pointToken, '#')) {
+            if (!pointToken.empty()) {
+                pointToken.erase(0, wcslen(L"("));
+                pointToken.pop_back(); // 移除')'
+                std::stringstream pointCoordStream(pointToken);
+                POINT pt;
+                pointCoordStream >> pt.x;
+                pointCoordStream.ignore(1, L',');
+                pointCoordStream >> pt.y;
+                points.push_back(pt);
+            }
+        }
+
+        ss >> ws >> token; // 线条颜色: 16733695
+        //token.erase(0, wcslen(L"线条颜色: "));
+        color = std::stoi(token);
+
+        ss >> ws >> token; // 填充状态: 1
+        //token.erase(0, wcslen(L"填充状态: "));
+        is_fill = (token == "1");
+
+        ss >> ws >> token; // 填充颜色: 21930
+        //token.erase(0, wcslen(L"填充颜色: "));
+        fillcolor = std::stoi(token);
+
+        ss >> ws >> token; // 线宽: 7
+        //token.erase(0, wcslen(L"线宽: "));
+        lineWidth = std::stoi(token);
+
+        ss >> ws >> token; // 线型: 0
+        //token.erase(0, wcslen(L"线型: "));
+        lineStyle = std::stoi(token);
+    }
     std::string generateLabel() const {
         std::wstringstream ss;
 		ss << L"Duo";
 		ss << L" 点数: " << points.size();
         ss << L" 点集 {";
 		for (const auto& pt : points) {
-			ss << L" (" << pt.x << L"," << pt.y << L")";
+			ss << L"#(" << pt.x << L"," << pt.y << L")";
 		}
 		ss << L"}";
 		ss << L" 线条颜色: " << color;
@@ -1040,6 +1310,36 @@ bool saveProjectWithDialog(const std::vector<std::shared_ptr<Shape>>& shapes) {
     return false;
 }
 
+void restoreShapesFromDisk(const std::string& filePath, std::vector<std::shared_ptr<Shape>>& shapes) {
+    std::fstream file(filePath);
+    if (!file) {
+        std::wcerr << L"文件打开失败！" << std::endl;
+        return;
+    }
+
+    std::string line;
+    std::map<std::string, std::function<std::shared_ptr<Shape>()>> shapeCreators = {
+        { "Circle", []() -> std::shared_ptr<Shape> { return std::make_shared<Circle>(); } },
+        { "Rect", []() -> std::shared_ptr<Shape> { return std::make_shared<Rect>(); } },
+        { "Zhexian", []() -> std::shared_ptr<Shape> { return std::make_shared<Zhexian>(); } },
+        { "Duo", []() -> std::shared_ptr<Shape> { return std::make_shared<Duo>(); } },
+        { "Tuoyuan", []() -> std::shared_ptr<Shape> { return std::make_shared<Tuoyuan>(); } },
+        { "Image", []() -> std::shared_ptr<Shape> { return std::make_shared<Image>(); } }
+    };
+
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string shapeType;
+        ss >> shapeType;
+
+        if (shapeCreators.find(shapeType) != shapeCreators.end()) {
+            std::shared_ptr<Shape> shape = shapeCreators[shapeType]();
+            shape->parseInfoFromStream(ss);
+            shapes.push_back(shape);
+        }
+    }
+}
+
 int main() {
     // 初始化图形窗口
     initgraph(1600, 900);
@@ -1101,6 +1401,26 @@ int main() {
                 }
 
             }
+            else if (loadButton.isInside(msg.x, msg.y)) {
+				OPENFILENAME ofn;
+				TCHAR szFileName[MAX_PATH] = { 0 };
+
+				ZeroMemory(&ofn, sizeof(ofn));
+				ofn.lStructSize = sizeof(ofn);
+				ofn.hwndOwner = NULL;
+				ofn.lpstrFile = szFileName;
+				ofn.nMaxFile = MAX_PATH;
+				ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_EXPLORER;
+				ofn.lpstrFilter = _T("Text Files (*.txt)\0*.txt\0All Files (*.*)\0*.*\0");
+				ofn.nFilterIndex = 1;
+				ofn.lpstrInitialDir = _T(".");
+
+				if (GetOpenFileName(&ofn)) {
+					std::string filePath = convertTCharToString(szFileName);
+					restoreShapesFromDisk(filePath, shapes);
+					DrawAllShapes();
+				}
+			}
 			else if (modifyLineWidthButton.isInside(msg.x, msg.y))
             {
 				pressButtom(&modifyLineWidthButton);
