@@ -1284,7 +1284,7 @@ void TcharToChar(const TCHAR* tchar, char* _char) {
     WideCharToMultiByte(CP_ACP, 0, tchar, -1, _char, iLength, NULL, NULL);
 }
 
-bool saveProjectWithDialog(const std::vector<std::shared_ptr<Shape>>& shapes) {
+bool saveProject(const std::vector<std::shared_ptr<Shape>>& shapes) {
     OPENFILENAME ofn;
     TCHAR szFileName[MAX_PATH] = { 0 };
 
@@ -1294,7 +1294,7 @@ bool saveProjectWithDialog(const std::vector<std::shared_ptr<Shape>>& shapes) {
     ofn.lpstrFile = szFileName;
     ofn.nMaxFile = MAX_PATH;
     ofn.Flags = OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY | OFN_PATHMUSTEXIST | OFN_EXPLORER | OFN_ENABLESIZING;
-    ofn.lpstrFilter = _T("Text Files (*.txt)\0*.txt\0All Files (*.*)\0*.*\0");
+    ofn.lpstrFilter = _T("Text文件 (*.txt)\0*.txt\0All Files (*.*)\0*.*\0");
     ofn.nFilterIndex = 1;
     ofn.lpstrFileTitle = NULL;
     ofn.nMaxFileTitle = 0;
@@ -1317,13 +1317,13 @@ bool saveProjectWithDialog(const std::vector<std::shared_ptr<Shape>>& shapes) {
     return false;
 }
 
-void restoreShapesFromDisk(const std::string& filePath, std::vector<std::shared_ptr<Shape>>& shapes) {
+void loadProject(const std::string& filePath, std::vector<std::shared_ptr<Shape>>& shapes) {
     std::fstream file(filePath);
     if (!file) {
         std::wcerr << L"文件打开失败！" << std::endl;
         return;
     }
-
+    shapes.clear();
     std::string line;
     std::map<std::string, std::function<std::shared_ptr<Shape>()>> shapeCreators = {
         { "Circle", []() -> std::shared_ptr<Shape> { return std::make_shared<Circle>(); } },
@@ -1400,7 +1400,7 @@ int main() {
                 }
             }
             else if (saveButton.isInside(msg.x,msg.y)) {
-                if (saveProjectWithDialog(shapes)) {
+                if (saveProject(shapes)) {
 					MessageBox(GetHWnd(), _T("保存成功"), _T("提示"), MB_OK);
                 }
                 else {
@@ -1418,13 +1418,13 @@ int main() {
 				ofn.lpstrFile = szFileName;
 				ofn.nMaxFile = MAX_PATH;
 				ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_EXPLORER;
-				ofn.lpstrFilter = _T("Text Files (*.txt)\0*.txt\0All Files (*.*)\0*.*\0");
+				ofn.lpstrFilter = _T("Text文件 (*.txt)\0*.txt\0All Files (*.*)\0*.*\0");
 				ofn.nFilterIndex = 1;
 				ofn.lpstrInitialDir = _T(".");
 
 				if (GetOpenFileName(&ofn)) {
 					std::string filePath = convertTCharToString(szFileName);
-					restoreShapesFromDisk(filePath, shapes);
+					loadProject(filePath, shapes);
 					DrawAllShapes();
 				}
 			}
