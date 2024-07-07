@@ -21,7 +21,7 @@
     <ClCompile Include="Button.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="HintManager.cpp">
+    <ClCompile Include="Tips.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Shape.cpp">
@@ -59,7 +59,7 @@
     <ClInclude Include="EasyDrawer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="HintManager.h">
+    <ClInclude Include="Tips.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Shape.h">

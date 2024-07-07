@@ -131,7 +131,7 @@
     <ClCompile Include="Circle.cpp" />
     <ClCompile Include="Duo.cpp" />
     <ClCompile Include="EasyDrawer.cpp" />
-    <ClCompile Include="HintManager.cpp" />
+    <ClCompile Include="Tips.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="Rect.cpp" />
     <ClCompile Include="Shape.cpp" />
@@ -144,7 +144,7 @@
     <ClInclude Include="Circle.h" />
     <ClInclude Include="Duo.h" />
     <ClInclude Include="EasyDrawer.h" />
-    <ClInclude Include="HintManager.h" />
+    <ClInclude Include="Tips.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="Rect.h" />
     <ClInclude Include="Shape.h" />

@@ -4,10 +4,10 @@
 #include"Zhexian.h"
 #include"Tuoyuan.h"
 #include "Button.h"
-#include"HintManager.h"
+#include"Tips.h"
 #include"Image.h"
 
-HintManager hintManager;
+Tips hintManager;
 std::vector<std::shared_ptr<Shape>> shapes;
 std::shared_ptr<Zhexian> currentZhexian;
 std::shared_ptr<Duo> currentDuo;

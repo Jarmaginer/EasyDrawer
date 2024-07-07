@@ -27,7 +27,7 @@
 #include "Zhexian.h"
 #include "Duo.h"
 #include "Tuoyuan.h"
-#include "HintManager.h"
+#include "Tips.h"
 
 
 #define drawCircleMode drawCircleButton.isPressed
@@ -43,7 +43,7 @@
 
 #define canBeSelected (selectMode || zoomMode || layerEditMode || modifyLineWidthMode || settingsMode)
 
-class HintManager;
+class Tips;
 
 void DrawAllShapes();
 
