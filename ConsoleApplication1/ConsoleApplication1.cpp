@@ -31,7 +31,7 @@
 #define modifyLineWidthMode modifyLineWidthButton.isPressed
 #define settingsMode settingsButton.isPressed
 
-#define canBeSelected (selectMode || zoomMode || layerEditMode || modifyLineWidthMode)
+#define canBeSelected (selectMode || zoomMode || layerEditMode || modifyLineWidthMode || settingsMode)
 
 //全局设定
 int THEME = 0; // 0为黑色主题，1为白色主题
@@ -110,7 +110,7 @@ class Button {
 public:
     Button(int left, int top, int right, int bottom, const TCHAR* text)
         : left(left), top(top), right(right), bottom(bottom), text(text), isPressed(false) {}
-	//下面这个构造函数是为了实现按钮的回调函数 绑定事件对象
+    //下面这个构造函数是为了实现按钮的回调函数 绑定事件对象
     Button(int left, int top, int right, int bottom, const TCHAR* text, bool (*callback)(bool))
         : left(left), top(top), right(right), bottom(bottom), text(text), isPressed(false), callback(callback) {}
     void drawColorButtom(int color)
@@ -133,10 +133,10 @@ public:
 
     }
     void drawcopyButton(int left, int top, int right, int bottom) {
-		this->bottom = bottom;
-		this->left = left;
-		this->right = right;
-		this->top = top;
+        this->bottom = bottom;
+        this->left = left;
+        this->right = right;
+        this->top = top;
 
         THEME == 0 ? setfillcolor(DARKGRAY) : setfillcolor(LIGHTGRAY);
         fillrectangle(left, top, right, bottom);
@@ -178,7 +178,7 @@ public:
     }
 
     bool isInside(int x, int y) const {
-        if(x >= left && x <= right && y >= top && y <= bottom){
+        if (x >= left && x <= right && y >= top && y <= bottom) {
             setfillcolor(LIGHTRED);
             fillrectangle(left, top, right, bottom);
             Sleep(50);
@@ -221,12 +221,14 @@ Button deleteButton(1100, 0, 1200, 50, _T("删除"));
 Button changeLineStyleButton(1200, 0, 1300, 50, _T("改变线型"));
 Button modifyLineWidthButton(1300, 0, 1400, 50, _T("修改线宽"));
 Button insertImageButton(1400, 0, 1500, 50, _T("置入图片"));
-Button layereditButton(1500, 0, 1600, 50, _T("图层编辑"));
-Button clearButton(1500, 50, 1600, 100, L"清空画布");
-Button saveButton(1500, 100, 1600, 150, _T("保存工程"));
-Button loadButton(1500, 150, 1600, 200, _T("读取工程"));
-Button insertButton(1500, 200, 1600, 250, _T("置入对象"));
-Button settingsButton(1500,850,1600,900, _T("设置"));
+Button insertButton(1400, 50, 1500, 100, _T("置入对象"));
+
+Button layereditButton(1400, 100, 1500, 150, _T("图层编辑"));
+Button clearButton(1400, 150, 1500, 200, L"清空画布");
+Button saveButton(1400, 200, 1500, 250, _T("保存工程"));
+Button loadButton(1400, 250, 1500, 300, _T("读取工程"));
+//Button insertButton(1400, 200, 1500, 250, _T("置入对象"));
+Button settingsButton(1400, 300, 1500, 350, _T("设置"));
 
 Button copyButton(-100, -100, -25, -25, _T("拷贝"));
 
@@ -375,7 +377,7 @@ void drawButton() {
     modifyLineWidthButton.draw();
     saveButton.draw();
     loadButton.draw();
-	insertButton.draw();
+    insertButton.draw();
     settingsButton.draw();
 
     BlackButton.drawColorButtom(BLACK);
@@ -403,30 +405,30 @@ void displaySettings() {
     BeginBatchDraw();
     settextstyle(30, 0, _T("Arial"));
     settextcolor(WHITE);
-	setlinecolor(WHITE);
-	!THEME ? setfillcolor(DARKGRAY) : setfillcolor(LIGHTBLUE);
+    setlinecolor(WHITE);
+    !THEME ? setfillcolor(DARKGRAY) : setfillcolor(LIGHTBLUE);
     //int THEME = 0; // 0为黑色主题，1为白色主题
     //bool FRESH_WHILE_MOVEMOUSE = false; // 鼠标移动时是否刷新画布
     //bool OPEN_TIPS = true; // 是否打开提示
     //bool OPEN_DOUBLE_CLICK = false; // 是否双击
-	!THEME ? fillrectangle(499, 245, 1114, 633) : fillroundrect(499, 245, 1114, 633,30, 30);
-   
-	outtextxy(755, 252, stringToLPCWSTR("设置菜单"));
+    !THEME ? fillrectangle(449, 245, 1064, 633) : fillroundrect(449, 245, 1064, 633, 30, 30);
 
-	outtextxy(532, 352, stringToLPCWSTR("设置画板主题颜色"));
-	outtextxy(892, 352, stringToLPCWSTR((THEME == 0) ? "黑色" : "白色"));
+    outtextxy(705, 252, stringToLPCWSTR("设置菜单"));
+
+    outtextxy(532, 352, stringToLPCWSTR("设置画板主题颜色"));
+    outtextxy(892, 352, stringToLPCWSTR((THEME == 0) ? "黑色" : "白色"));
 
     outtextxy(532, 382, stringToLPCWSTR("提示系统"));
-	outtextxy(892, 382, stringToLPCWSTR(OPEN_TIPS ? "开启" : "关闭"));
+    outtextxy(892, 382, stringToLPCWSTR(OPEN_TIPS ? "开启" : "关闭"));
 
     outtextxy(532, 412, stringToLPCWSTR(("鼠标移动时刷新画布")));
-	outtextxy(892, 412, stringToLPCWSTR(FRESH_WHILE_MOVEMOUSE ? "开启" : "关闭"));
+    outtextxy(892, 412, stringToLPCWSTR(FRESH_WHILE_MOVEMOUSE ? "开启" : "关闭"));
 
-	outtextxy(532, 442, stringToLPCWSTR(("捕获鼠标双击事件")));
-	outtextxy(892, 442, stringToLPCWSTR(OPEN_DOUBLE_CLICK ? "开启" : "关闭"));
+    outtextxy(532, 442, stringToLPCWSTR(("捕获鼠标双击事件")));
+    outtextxy(892, 442, stringToLPCWSTR(OPEN_DOUBLE_CLICK ? "开启" : "关闭"));
 
     outtextxy(532, 472, stringToLPCWSTR(("启用双缓冲区渲染优化")));
-	outtextxy(892, 472, stringToLPCWSTR(OPEN_BATCH_DRAW ? "开启" : "关闭"));
+    outtextxy(892, 472, stringToLPCWSTR(OPEN_BATCH_DRAW ? "开启" : "关闭"));
 
 
 
@@ -452,7 +454,7 @@ public:
 
     void displayHints() const {
         settextstyle(16, 0, _T("Arial"));
-        !THEME ? settextcolor(LIGHTGRAY):settextcolor(DARKGRAY);
+        !THEME ? settextcolor(LIGHTGRAY) : settextcolor(DARKGRAY);
         outtextxy(5, SCREEN_HEIGHT - 60, stringToLPCWSTR(("点击位置: (" + std::to_string(mousePos.x) + ", " + std::to_string(mousePos.y) + ")")));
         outtextxy(5, SCREEN_HEIGHT - 40, stringToLPCWSTR(("模式: " + mode)));
         outtextxy(5, SCREEN_HEIGHT - 20, stringToLPCWSTR("提示: " + tips));
@@ -1338,7 +1340,7 @@ void DrawAllShapes() {
         // 显示信息
         std::wstring info = shapes[selectedIndex]->getInfo();
         settextstyle(18, 0, _T("Arial")); // 设置字体样式
-        THEME==0 ? settextcolor(YELLOW) : settextcolor(DARKGRAY);
+        THEME == 0 ? settextcolor(YELLOW) : settextcolor(DARKGRAY);
         //outtextxy(bbox.right - 200, bbox.bottom + 10, info.c_str()); // 在外框右下角显示信息
         int y = bbox.bottom + 10; // 初始y坐标
         for (size_t pos = 0; pos < info.length(); ) {
@@ -1380,7 +1382,7 @@ void DrawAllShapes() {
 
     // 绘制选中的形状的外框
 
-    if(OPEN_BATCH_DRAW) EndBatchDraw();
+    if (OPEN_BATCH_DRAW) EndBatchDraw();
 }
 
 
@@ -1394,7 +1396,7 @@ void pressButton(Button* targetButton) {
             button->press();   // 如果是目标按钮，按下去
         }
     }
-	DrawAllShapes();
+    DrawAllShapes();
 }
 
 void pressColourButtom(Button* targetButton) {
@@ -1463,14 +1465,14 @@ bool saveProject(const std::vector<std::shared_ptr<Shape>>& shapes) {
     return false;
 }
 
-int loadProject(const std::string& filePath, std::vector<std::shared_ptr<Shape>>& shapes,bool needClear = true) {
+int loadProject(const std::string& filePath, std::vector<std::shared_ptr<Shape>>& shapes, bool needClear = true) {
     int count = 0;
     std::fstream file(filePath);
     if (!file) {
         std::wcerr << L"文件打开失败！" << std::endl;
         return -1;
     }
-    if(needClear) shapes.clear();
+    if (needClear) shapes.clear();
     selectedIndex = -1;
     std::string line;
     std::map<std::string, std::function<std::shared_ptr<Shape>()>> shapeCreators = {
@@ -1491,15 +1493,18 @@ int loadProject(const std::string& filePath, std::vector<std::shared_ptr<Shape>>
             std::shared_ptr<Shape> shape = shapeCreators[shapeType]();
             shape->parseInfoFromStream(ss);
             shapes.push_back(shape);
-			count++;
+            count++;
         }
     }
     return count;
 }
 
+
+
+
 int main() {
     // 初始化图形窗口
-    OPEN_DOUBLE_CLICK ? initgraph(1600, 900, EX_SHOWCONSOLE | EX_DBLCLKS) : initgraph(1600, 900, EX_SHOWCONSOLE);
+    OPEN_DOUBLE_CLICK ? initgraph(1500, 900, EX_SHOWCONSOLE | EX_DBLCLKS ) : initgraph(1500, 900, EX_SHOWCONSOLE);
     setbkmode(TRANSPARENT);
     cleardevice();
     drawButton();
@@ -1521,7 +1526,7 @@ int main() {
         }
         if (OPEN_TIPS) hintManager.updatePt(pt);
         if (!canBeSelected) { selectedIndex = -1; }
-		if (OPEN_DOUBLE_CLICK && msg.uMsg == WM_LBUTTONDBLCLK)
+        if (OPEN_DOUBLE_CLICK && msg.uMsg == WM_LBUTTONDBLCLK)
         {
             if (OPEN_TIPS) hintManager.updateHints(pt, "选择图形", "左键点击选择图形，拖动移动，滚轮选择图形，右键修改图形参数");
             pressButton(&selectShapeButton);
@@ -1537,14 +1542,18 @@ int main() {
             isDragging = true;
             lastMousePos = pt;
             DrawAllShapes();
-		}
+        }
         if (settingsMode)
         {
-			displaySettings();
-		}
+            displaySettings();
+        }
 
         switch (msg.uMsg) {
-        
+        case WM_DESTROY: // 如果窗口被销毁，跳出循环
+            closegraph();
+            PostQuitMessage(0); // 发送退出消息给消息队列
+            return 0;
+
         case WM_LBUTTONDOWN:
             if (settingsMode) {
                 if (themeButton.isInside(msg.x, msg.y))
@@ -1562,24 +1571,29 @@ int main() {
                 }
                 else if (refreshMouseMove.isInside(msg.x, msg.y)) {
                     FRESH_WHILE_MOVEMOUSE = 1 - FRESH_WHILE_MOVEMOUSE;
-					
-					DrawAllShapes();
-				}
+
+                    DrawAllShapes();
+                }
                 else if (openTips.isInside(msg.x, msg.y))
                 {
                     OPEN_TIPS = 1 - OPEN_TIPS;
-					DrawAllShapes();
-				}
+                    DrawAllShapes();
+                }
                 else if (openDoubleClick.isInside(msg.x, msg.y))
                 {
                     OPEN_DOUBLE_CLICK = 1 - OPEN_DOUBLE_CLICK;
-                    OPEN_DOUBLE_CLICK ? initgraph(1600, 900, EX_SHOWCONSOLE | EX_DBLCLKS) : initgraph(1600, 900, EX_SHOWCONSOLE);
+                    OPEN_DOUBLE_CLICK ? initgraph(1500, 900, EX_SHOWCONSOLE | EX_DBLCLKS) : initgraph(1500, 900, EX_SHOWCONSOLE);
                     setbkmode(TRANSPARENT);
                     DrawAllShapes();
                 }
-				else if (openBatchDraw.isInside(msg.x, msg.y))
+                else if (openBatchDraw.isInside(msg.x, msg.y))
                 {
-					OPEN_BATCH_DRAW = 1 - OPEN_BATCH_DRAW;
+                    OPEN_BATCH_DRAW = 1 - OPEN_BATCH_DRAW;
+                    DrawAllShapes();
+                }
+				else if (!(msg.x >= 449 && msg.x <= 1064 && msg.y >= 245 && msg.y <= 633))
+                {
+					settingsMode = 0;
 					DrawAllShapes();
 				}
             }
@@ -1614,7 +1628,7 @@ int main() {
                 }
             }
             else if (settingsButton.isInside(msg.x, msg.y)) {
-				pressButton(&settingsButton);
+                pressButton(&settingsButton);
             }
             else if (saveButton.isInside(msg.x, msg.y)) {
                 if (saveProject(shapes)) {
@@ -1651,7 +1665,7 @@ int main() {
                 //SetConsoleActiveProcess(GetCurrentProcessId());
 
                 // 接收多行输入
-                std::cout << "输入对象标签:" << std::endl;
+                std::cout << "输入对象标签(输入end结束):" << std::endl;
                 std::string input;
 
                 std::map<std::string, std::function<std::shared_ptr<Shape>()>> shapeCreators = {
@@ -1663,7 +1677,7 @@ int main() {
                     { "Image", []() -> std::shared_ptr<Shape> { return std::make_shared<Image>(); } }
                 };
                 int count = 0;
-                while (std::getline(std::cin, input)&&input!="end") {
+                while (std::getline(std::cin, input) && input != "end") {
                     std::stringstream ss(input);
                     std::string shapeType;
                     ss >> shapeType;
@@ -1672,12 +1686,12 @@ int main() {
                         std::shared_ptr<Shape> shape = shapeCreators[shapeType]();
                         shape->parseInfoFromStream(ss);
                         shapes.push_back(shape);
-                        
+
                         count++;
                     }
                 }
-				std::cout << "成功置入" << count << "个对象" << std::endl;
-				MessageBox(GetHWnd(), stringToLPCWSTR(("成功置入"+std::to_string(count)+"个对象")), _T("提示"), MB_OK);
+                std::cout << "成功置入" << count << "个对象" << std::endl;
+                MessageBox(GetHWnd(), stringToLPCWSTR(("成功置入" + std::to_string(count) + "个对象")), _T("提示"), MB_OK);
                 FreeConsole();
 
                 // 重新绘制所有形状
@@ -1697,14 +1711,14 @@ int main() {
             else if (clearButton.isInside(msg.x, msg.y))
             {
                 shapes.clear();
-				selectedIndex = -1;
+                selectedIndex = -1;
                 DrawAllShapes();
                 continue;
             }
             else if (copyButton.isInside(msg.x, msg.y)) {
                 std::string label = shapes[selectedIndex]->generateLabel();
                 CopyTextToClipboard(label);
-				MessageBox(GetHWnd(), _T("已将标签拷贝到剪贴板"), _T("提示"), MB_OK);
+                MessageBox(GetHWnd(), _T("已将标签拷贝到剪贴板"), _T("提示"), MB_OK);
                 DrawAllShapes();
             }
             else if (BlackButton.isInside(msg.x, msg.y)) {
@@ -1906,10 +1920,10 @@ int main() {
 
             else if (canBeSelected) {
                 for (size_t i = 0; i < shapes.size(); ++i) {
-                    RECT bbox = shapes[i]->getBoundingBox();
+                    RECT bbox = shapes[shapes.size()-i-1]->getBoundingBox();
                     if (pt.x >= bbox.left && pt.x <= bbox.right &&
                         pt.y >= bbox.top && pt.y <= bbox.bottom) {
-                        selectedIndex = static_cast<int>(i);
+                        selectedIndex = static_cast<int>(shapes.size() - i - 1);
 
                         break;
                     }
