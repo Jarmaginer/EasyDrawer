@@ -1,3 +1,0 @@
-Image 左上点: (713,470) 宽度: 468 高度: 216 文件名: C:\Users\23258\Pictures\1.png
-Image 左上点: (206,301) 宽度: 466 高度: 215 文件名: C:\Users\23258\Pictures\1.png
-Image 左上点: (864,195) 宽度: 452 高度: 204 文件名: C:\Users\23258\Pictures\1.png
