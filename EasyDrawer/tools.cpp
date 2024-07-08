@@ -82,7 +82,7 @@ std::wstring colorToString(int color) {
 
 LPCWSTR stringToLPCWSTR(std::string str)
 {
-    size_t size = str.length();
+    int size = str.length();
     int wLen = ::MultiByteToWideChar(CP_UTF8,
         0,
         str.c_str(),
@@ -146,13 +146,10 @@ void changeTheme()
 }
 
 
-// 按钮类
 
 
 void displaySettings();
 
-
-// 切换主题的函数
 
 
 void CopyTextToClipboard(const std::string& text) {
@@ -173,7 +170,6 @@ void CopyTextToClipboard(const std::string& text) {
 std::string convertTCharToString(TCHAR* tcharStr)
 {
     std::string result;
-    // 如果项目使用Unicode，需要从宽字符字符串转换
     std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
     result = myconv.to_bytes(tcharStr);
     return result;

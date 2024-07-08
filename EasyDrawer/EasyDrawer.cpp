@@ -119,14 +119,13 @@ void DrawAllShapes() {
         rectangle(bbox.left - 5, bbox.top - 5, bbox.right + 5, bbox.bottom + 5);
         setlinecolor(WHITE);
 
-        // 显示信息
         std::wstring info = shapes[selectedIndex]->getInfo();
-        settextstyle(18, 0, _T("Arial")); // 设置字体样式
+        settextstyle(18, 0, _T("Arial"));
         THEME == 0 ? settextcolor(YELLOW) : settextcolor(DARKGRAY);
-        //outtextxy(bbox.right - 200, bbox.bottom + 10, info.c_str()); // 在外框右下角显示信息
+        //outtextxy(bbox.right - 200, bbox.bottom + 10, info.c_str()); // 在外框右下角
         int y = bbox.bottom + 10; // 初始y坐标
-        for (size_t pos = 0; pos < info.length(); ) {
-            size_t next_pos = info.find(L'\n', pos);
+        for (int pos = 0; pos < info.length(); ) {
+            int next_pos = info.find(L'\n', pos);
             if (next_pos == std::wstring::npos) {
                 next_pos = info.length();
             }
@@ -138,31 +137,27 @@ void DrawAllShapes() {
         copyButton.drawcopyButton(bbox.right - 40, bbox.bottom + 10, bbox.right, bbox.bottom + 40);
 
         for (const auto& shape : shapes) {
-            // 如果图形被选中
             if (selectedIndex != -1 && shape.get() == shapes[selectedIndex].get()) {
                 // 计算层级信息的字符串
                 std::wstring layerInfo = L"层级: " + std::to_wstring(selectedIndex);
                 std::wstring lineInfo = L"线宽: " + std::to_wstring(shape->lineWidth) + L"  线型: " + std::to_wstring(shape->lineStyle);
 
-                // 设置字体和颜色
-                settextstyle(18, 0, _T("Arial")); // 或者选择合适的字体大小和样式
+                settextstyle(18, 0, _T("Arial"));
                 THEME == 0 ? settextcolor(YELLOW) : settextcolor(DARKGRAY);
 
-                // 计算位置
                 int posX = bbox.left; // 距离图形右边界5个单位
                 int posY = bbox.top - 30; // 距离图形顶部5个单位
 
                 // 输出层级信息
                 outtextxy(posX, posY, layerInfo.c_str());
 
-                posX = bbox.right - 100; // 距离图形右边界5个单位
-                posY = bbox.top - 30; // 距离图形顶部5个单位
+                posX = bbox.right - 100;
+                posY = bbox.top - 30;
                 outtextxy(posX, posY, lineInfo.c_str());
             }
         }
     }
 
-    // 绘制选中的形状的外框
 
     if (OPEN_BATCH_DRAW) EndBatchDraw();
 }
@@ -170,10 +165,10 @@ void DrawAllShapes() {
 void pressButton(Button* targetButton) {
     for (auto button : buttons) {
         if (button != targetButton) {
-            button->release(); // 如果不是目标按钮，释放它
+            button->release();
         }
         else {
-            button->press();   // 如果是目标按钮，按下去
+            button->press();
         }
     }
     DrawAllShapes();
@@ -182,10 +177,10 @@ void pressButton(Button* targetButton) {
 void pressColourButtom(Button* targetButton) {
     for (auto button : colourbuttons) {
         if (button != targetButton) {
-            button->release(); // 如果不是目标按钮，释放它
+            button->release();
         }
         else {
-            button->press();   // 如果是目标按钮，按下去
+            button->press(); 
             if (selectedIndex != -1) {
                 shapes[selectedIndex]->setColor(COLOR);
                 DrawAllShapes();
@@ -221,7 +216,7 @@ int main() {
         {
             if (OPEN_TIPS) hintManager.updateHints(pt, "选择图形", "左键点击选择图形，拖动移动，滚轮选择图形，右键修改图形参数");
             pressButton(&selectShapeButton);
-            for (size_t i = 0; i < shapes.size(); ++i) {
+            for (int i = 0; i < shapes.size(); ++i) {
                 RECT bbox = shapes[i]->getBoundingBox();
                 if (pt.x >= bbox.left && pt.x <= bbox.right &&
                     pt.y >= bbox.top && pt.y <= bbox.bottom) {
@@ -246,6 +241,7 @@ int main() {
             return 0;
 
         case WM_LBUTTONDOWN:
+            //设置相关的按钮
             if (settingsMode) {
                 if (themeButton.isInside(msg.x, msg.y))
                 {
@@ -288,6 +284,7 @@ int main() {
                     DrawAllShapes();
                 }
             }
+            //置入图像
             if (insertImageButton.isInside(msg.x, msg.y)) {
                 OPENFILENAME ofn;
                 TCHAR szFile[260] = { 0 };
@@ -313,6 +310,7 @@ int main() {
                     }
                 }
             }
+            //设置
             else if (settingsButton.isInside(msg.x, msg.y)) {
                 pressButton(&settingsButton);
             }
@@ -325,6 +323,7 @@ int main() {
                 }
 
             }
+            //加载工程
             else if (loadButton.isInside(msg.x, msg.y)) {
                 OPENFILENAME ofn;
                 TCHAR szFileName[MAX_PATH] = { 0 };
@@ -345,6 +344,7 @@ int main() {
                     DrawAllShapes();
                 }
             }
+			//插入图形
             else if (insertButton.isInside(msg.x, msg.y)) {
                 HANDLE hConsole = GetStdHandle(STD_INPUT_HANDLE);
                 AttachConsole(ATTACH_PARENT_PROCESS);
@@ -381,17 +381,20 @@ int main() {
                 FreeConsole();
                 DrawAllShapes();
             }
+			//修改线宽
             else if (modifyLineWidthButton.isInside(msg.x, msg.y))
             {
                 pressButton(&modifyLineWidthButton);
                 if (OPEN_TIPS) hintManager.updateHints(pt, "修改线宽", "滚轮上下滚动增减线宽");
                 continue;
             }
+            //图层编辑
             else if (layereditButton.isInside(msg.x, msg.y)) {
                 if (OPEN_TIPS) hintManager.updateHints(pt, "图层编辑", "滚轮上下滚动改变层级");
                 pressButton(&layereditButton);
                 continue;
             }
+            //清空画布
             else if (clearButton.isInside(msg.x, msg.y))
             {
                 shapes.clear();
@@ -399,12 +402,14 @@ int main() {
                 DrawAllShapes();
                 continue;
             }
+            //复制
             else if (copyButton.isInside(msg.x, msg.y)) {
                 std::string label = shapes[selectedIndex]->generateLabel();
                 CopyTextToClipboard(label);
                 MessageBox(GetHWnd(), _T("已将标签拷贝到剪贴板"), _T("提示"), MB_OK);
                 DrawAllShapes();
             }
+            //颜色
             else if (BlackButton.isInside(msg.x, msg.y)) {
                 COLOR = BLACK;
                 pressColourButtom(&BlackButton);
@@ -502,11 +507,13 @@ int main() {
 
                 continue;
             }
+			//绘制圆
             else if (drawCircleButton.isInside(msg.x, msg.y)) {
                 if (OPEN_TIPS) hintManager.updateHints(pt, "绘制圆", "拖拽画圆");
                 pressButton(&drawCircleButton);
                 continue;
             }
+
             else if (drawRectButton.isInside(msg.x, msg.y)) {
                 if (OPEN_TIPS) hintManager.updateHints(pt, "绘制矩形", "拖拽画矩形");
                 pressButton(&drawRectButton);
@@ -522,6 +529,7 @@ int main() {
                 pressButton(&drawDuoButton);
                 continue;
             }
+			//选择
             else if (selectShapeButton.isInside(msg.x, msg.y)) {
                 if (OPEN_TIPS) hintManager.updateHints(pt, "选择图形", "左键点击选择图形，拖动移动，滚轮选择图形，右键修改图形参数");
                 pressButton(&selectShapeButton);
@@ -594,12 +602,15 @@ int main() {
                 }
             }
 
+
+
+			//不在按钮上的情况
             else if (canBeSelected) {
-                for (size_t i = 0; i < shapes.size(); ++i) {
+                for (int i = 0; i < shapes.size(); ++i) {
                     RECT bbox = shapes[shapes.size() - i - 1]->getBoundingBox();
                     if (pt.x >= bbox.left && pt.x <= bbox.right &&
                         pt.y >= bbox.top && pt.y <= bbox.bottom) {
-                        selectedIndex = static_cast<int>(shapes.size() - i - 1);
+                        selectedIndex = shapes.size() - i - 1;
 
                         break;
                     }

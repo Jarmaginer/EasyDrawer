@@ -62,7 +62,7 @@ void Zhexian::draw() const {
         solidpolygon(&points[0], points.size());
     }
 
-    for (size_t i = 0; i < points.size() - 1; ++i) {
+    for (int i = 0; i < points.size() - 1; ++i) {
         line(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
     }
 
