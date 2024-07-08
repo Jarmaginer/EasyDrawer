@@ -2,7 +2,7 @@
 
 Circle::Circle(POINT center, int radius) : center(center), radius(radius) {}
 
-// draw() 成员函数实现
+
 void Circle::draw() const {
     setlinecolor(color);
     setlinestyle(lineStyle, lineWidth);
@@ -18,12 +18,12 @@ void Circle::draw() const {
     setlinestyle(PS_SOLID, 1);
 }
 
-// parseInfoFromStream() 成员函数实现
+
 void Circle::parseInfoFromStream(std::stringstream& ss) {
     std::string token;
-    ss >> token; // 忽略"Circle"
+    ss >> token;
 
-    ss >> token; // 圆心: (251,308)
+    ss >> token;
     token.pop_back(); // 移除')'
     token.erase(0, wcslen(L"(")); // 移除'('
     std::stringstream coordStream(token);
@@ -63,18 +63,18 @@ std::string Circle::generateLabel() const {
     return wstring2string(ss.str());
 }
 
-// getBoundingBox() 成员函数实现
+
 RECT Circle::getBoundingBox() const {
     return { center.x - radius, center.y - radius, center.x + radius, center.y + radius };
 }
 
-// move() 成员函数实现
+
 void Circle::move(int dx, int dy) {
     center.x += dx;
     center.y += dy;
 }
 
-// zoom() 成员函数实现
+
 void Circle::zoom(double factor, POINT zoomCenter) {
     int dx = center.x - zoomCenter.x;
     int dy = center.y - zoomCenter.y;
@@ -83,7 +83,7 @@ void Circle::zoom(double factor, POINT zoomCenter) {
     radius = static_cast<int>(radius * factor);
 }
 
-// getInfo() 成员函数实现
+
 std::wstring Circle::getInfo() const {
     std::wstringstream ss;
     ss << L"圆: \n半径=" << radius << L"\n圆心=(" << center.x << L"," << center.y << L")";
@@ -94,7 +94,7 @@ std::wstring Circle::getInfo() const {
     return ss.str();
 }
 
-// clone() 成员函数实现
+
 std::shared_ptr<Shape> Circle::clone() const {
     return std::make_shared<Circle>(*this);
 }

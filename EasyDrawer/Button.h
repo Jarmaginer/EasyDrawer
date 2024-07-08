@@ -5,9 +5,6 @@ class Button {
 public:
     Button(int left, int top, int right, int bottom, const TCHAR* text)
         : left(left), top(top), right(right), bottom(bottom), text(text), isPressed(false) {}
-    //下面这个构造函数是为了实现按钮的回调函数 绑定事件对象
-    Button(int left, int top, int right, int bottom, const TCHAR* text, bool (*callback)(bool))
-        : left(left), top(top), right(right), bottom(bottom), text(text), isPressed(false), callback(callback) {}
     void drawColorButtom(int color)
     {
         if (isPressed) {

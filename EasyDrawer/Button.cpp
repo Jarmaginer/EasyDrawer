@@ -49,7 +49,7 @@ Button openDoubleClick(888, 440, 948, 470, _T("双击"));
 Button openBatchDraw(888, 470, 948, 500, _T("双缓冲区"));
 
 
-// 定义一个按钮数组，包含所有需要分组的按钮
+
 
 
 void drawButton() {
@@ -101,10 +101,7 @@ void displaySettings() {
     settextcolor(WHITE);
     setlinecolor(WHITE);
     !THEME ? setfillcolor(DARKGRAY) : setfillcolor(LIGHTBLUE);
-    //int THEME = 0; // 0为黑色主题，1为白色主题
-    //bool FRESH_WHILE_MOVEMOUSE = false; // 鼠标移动时是否刷新画布
-    //bool OPEN_TIPS = true; // 是否打开提示
-    //bool OPEN_DOUBLE_CLICK = false; // 是否双击
+
     !THEME ? fillrectangle(449, 245, 1064, 633) : fillroundrect(449, 245, 1064, 633, 30, 30);
 
     outtextxy(705, 252, stringToLPCWSTR("设置菜单"));

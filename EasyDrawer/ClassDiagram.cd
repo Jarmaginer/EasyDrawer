@@ -1,63 +1,63 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
-  <Class Name="Button">
-    <Position X="8.75" Y="0.5" Width="1.5" />
+  <Class Name="Button" Collapsed="true">
+    <Position X="14.25" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>EEBAAACAAgAAABAAQAIAAAgAAABIAACIAAAACAAAgAA=</HashCode>
       <FileName>Button.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Circle">
-    <Position X="0.5" Y="5.5" Width="1.5" />
+  <Class Name="Circle" Collapsed="true">
+    <Position X="0.5" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAgAAAAICAAAAACCACIAABAAQAgAAAAAAAAAEAAAAAA=</HashCode>
       <FileName>Circle.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Duo">
-    <Position X="7.5" Y="5.75" Width="1.5" />
+  <Class Name="Duo" Collapsed="true">
+    <Position X="7.25" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAABCIAAAAACCCACIAABAAQAAAAEAAAAAAEAAAAAA=</HashCode>
       <FileName>Duo.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="HintManager">
-    <Position X="3.5" Y="0.5" Width="1.5" />
+  <Class Name="Tips" Collapsed="true">
+    <Position X="16" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAQAAAAAAAAQACAAAAAAAAAAAAAAAAAAAAAAAEAQEA=</HashCode>
-      <FileName>HintManager.h</FileName>
+      <FileName>Tips.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Image">
-    <Position X="2.5" Y="5.5" Width="1.5" />
+  <Class Name="Image" Collapsed="true">
+    <Position X="2.75" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>gAAAAABIQAAAAASCQCIAABAAQAABABAAAAAAEAAAEAA=</HashCode>
       <FileName>Image.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Rect">
-    <Position X="9.5" Y="5.75" Width="1.5" />
+  <Class Name="Rect" Collapsed="true">
+    <Position X="9.5" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAIAAAAACCCACIAABAAQCAAAAAAAAAAEAIAEAA=</HashCode>
       <FileName>Rect.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Shape">
+  <Class Name="Shape" Collapsed="true">
     <Position X="6" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAgIAAgQACCCACIAABERwBACIACAAAAAEAAIAAA=</HashCode>
       <FileName>Shape.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Tuoyuan">
-    <Position X="4.25" Y="5.75" Width="1.5" />
+  <Class Name="Tuoyuan" Collapsed="true">
+    <Position X="5" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAgAAIAAAAACCCACIAABAAQAAAAAAAAAAAEAIAEAA=</HashCode>
       <FileName>Tuoyuan.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Zhexian">
-    <Position X="11.75" Y="5.75" Width="1.5" />
+  <Class Name="Zhexian" Collapsed="true">
+    <Position X="11.75" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAABCIAAAAACCCACIAABAAQAAAAEAAAAAAEAAAAAA=</HashCode>
       <FileName>Zhexian.h</FileName>
