@@ -12,9 +12,13 @@ void Duo::updateLastPoint(POINT pt) {
 }
 
 void Duo::draw() const {
-    if (points.size() < 3) return;
     setlinecolor(color);
     setlinestyle(lineStyle, lineWidth);
+    if (points.size() == 2) {
+        line(points[0].x, points[0].y, points[1].x, points[1].y);
+    }
+    if (points.size() < 3) return;
+
     if (is_fill) {
         setfillcolor(fillcolor);
         solidpolygon(&points[0], points.size());

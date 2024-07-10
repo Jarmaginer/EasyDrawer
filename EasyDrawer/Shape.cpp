@@ -33,5 +33,4 @@ void Shape::setFillColour(int co) {
 }
 
 void Shape::changePoints(int x, int y) {
-    // 默认实现为空
 }

@@ -88,12 +88,12 @@ void DrawAllShapes() {
     cleardevice();
     if (OPEN_TIPS) hintManager.displayHints();
     drawButton();
-    // 绘制所有形状
+
 
     for (const auto& shape : shapes) {
         shape->draw();
     }
-    // 绘制当前绘制中的形状
+
     if (isDrawingCircle) {
         int radius = static_cast<int>(std::sqrt(std::pow(endPoint.x - startPoint.x, 2) + std::pow(endPoint.y - startPoint.y, 2)));
         Circle tempCircle(startPoint, radius);
@@ -123,14 +123,14 @@ void DrawAllShapes() {
         settextstyle(18, 0, _T("Arial"));
         THEME == 0 ? settextcolor(YELLOW) : settextcolor(DARKGRAY);
         //outtextxy(bbox.right - 200, bbox.bottom + 10, info.c_str()); // 在外框右下角
-        int y = bbox.bottom + 10; // 初始y坐标
+        int y = bbox.bottom + 10;
         for (int pos = 0; pos < info.length(); ) {
             int next_pos = info.find(L'\n', pos);
             if (next_pos == std::wstring::npos) {
                 next_pos = info.length();
             }
             outtextxy(bbox.left, y, info.substr(pos, next_pos - pos).c_str());
-            y += 20; // 调整y坐标以适应下一行
+            y += 20; 
             pos = next_pos + 1;
         }
 
@@ -138,17 +138,16 @@ void DrawAllShapes() {
 
         for (const auto& shape : shapes) {
             if (selectedIndex != -1 && shape.get() == shapes[selectedIndex].get()) {
-                // 计算层级信息的字符串
                 std::wstring layerInfo = L"层级: " + std::to_wstring(selectedIndex);
                 std::wstring lineInfo = L"线宽: " + std::to_wstring(shape->lineWidth) + L"  线型: " + std::to_wstring(shape->lineStyle);
 
                 settextstyle(18, 0, _T("Arial"));
                 THEME == 0 ? settextcolor(YELLOW) : settextcolor(DARKGRAY);
 
-                int posX = bbox.left; // 距离图形右边界5个单位
-                int posY = bbox.top - 30; // 距离图形顶部5个单位
+                int posX = bbox.left;
+                int posY = bbox.top - 30;
 
-                // 输出层级信息
+
                 outtextxy(posX, posY, layerInfo.c_str());
 
                 posX = bbox.right - 100;
